@@ -31,7 +31,7 @@
     .a4-container {
       width: 210mm; /* Standard A4 width */
       min-height: 297mm; /* Standard A4 height, using min-height to allow content to grow */
-      padding: 15mm; /* Padding around the content */
+      padding: 10mm; /* Padding around the content */
       background: white;
       box-shadow: 0 4px 20px rgba(0,0,0,0.1); /* Soft shadow for visual separation */
       margin: 10px auto; /* Center the container with some margin */
@@ -276,10 +276,9 @@
       const video = cameraView;
       const targetAspectRatio = 16 / 9;
 
-      // Create a canvas with a 16:9 aspect ratio for high quality capture.
       const canvas = document.createElement('canvas');
       canvas.width = 1280;
-      canvas.height = canvas.width / targetAspectRatio; // 720
+      canvas.height = canvas.width / targetAspectRatio;
 
       const ctx = canvas.getContext('2d');
 
@@ -289,23 +288,18 @@
 
       let sx, sy, sWidth, sHeight;
 
-      // This logic calculates how to crop the source video to fit the 16:9 canvas,
-      // simulating `object-fit: cover`.
       if (videoAspectRatio > targetAspectRatio) {
-        // Video is wider than target (e.g., 17:9), crop the sides.
         sHeight = videoHeight;
         sWidth = sHeight * targetAspectRatio;
         sx = (videoWidth - sWidth) / 2;
         sy = 0;
       } else {
-        // Video is taller than target (e.g., 4:3), crop the top/bottom.
         sWidth = videoWidth;
         sHeight = sWidth / targetAspectRatio;
         sx = 0;
         sy = (videoHeight - sHeight) / 2;
       }
 
-      // Draw the cropped portion of the video onto the 16:9 canvas.
       ctx.drawImage(video, sx, sy, sWidth, sHeight, 0, 0, canvas.width, canvas.height);
 
       photos.push(canvas.toDataURL('image/jpeg', 0.9));
@@ -389,83 +383,107 @@
 
     /**
      * Generates the HTML content for the report preview based on form inputs and photos.
+     * Uses inline styles to ensure proper rendering in html2canvas.
      */
     function generateReport() {
       namaPetugas.classList.toggle('input-error', namaPetugas.value.trim() === '');
       judulKegiatan.classList.toggle('input-error', judulKegiatan.value.trim() === '');
 
-      // SOLUSI: Gunakan gambar placeholder yang valid
+      // Using an inline SVG for the logo to prevent canvas tainting issues from external images.
       let reportHTML = `
         <div class="a4-container">
-          <div class="flex items-center border-b-2 border-gray-800 pb-3 mb-5">
-            <!-- Gunakan gambar dari CDN -->
-            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/12/User_icon_2.svg/1200px-User_icon_2.svg.png" 
-                 alt="Logo BPBD" 
-                 class="w-20 h-20 mr-4">
-            <div class="text-center flex-grow">
-              <h1 class="text-xl font-bold mb-1">LAPORAN KEGIATAN</h1>
-              <p class="text-base mb-1">BADAN PENANGGULANGAN BENCANA DAERAH</p>
-              <p class="text-sm">KABUPATEN KOTAWARINGIN BARAT</p>
+            <div style="display: flex; align-items: center; border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 20px;">
+                <svg width="80" height="80" viewBox="0 0 100 100" style="margin-right: 20px;" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="100" height="100" fill="#000"/>
+                    <text x="50" y="55" font-family="Arial, sans-serif" font-size="24" fill="#FFF" text-anchor="middle" dominant-baseline="middle">BPBD</text>
+                </svg>
+                <div style="text-align: center; flex-grow: 1;">
+                    <h1 style="font-size: 22px; font-weight: bold; margin: 0;">LAPORAN KEGIATAN</h1>
+                    <p style="font-size: 16px; margin: 0;">BADAN PENANGGULANGAN BENCANA DAERAH</p>
+                    <p style="font-size: 14px; margin: 0;">KABUPATEN KOTAWARINGIN BARAT</p>
+                </div>
             </div>
-          </div>
-          
-          <h2 class="text-base font-bold mb-3">I. DETAIL KEGIATAN</h2>
-          <table class="w-full border-collapse text-sm leading-relaxed">
-            <tbody>
-              <tr>
-                <td class="w-40 py-1">Nama Petugas</td>
-                <td class="w-10">:</td>
-                <td class="font-bold">${namaPetugas.value || '-'}</td>
-              </tr>
-              ${jabatan.value ? `
-              <tr>
-                <td class="py-1">Jabatan</td>
-                <td>:</td>
-                <td class="font-bold">${jabatan.value}</td>
-              </tr>` : ''}
-              <tr>
-                <td class="py-1">Judul Kegiatan</td>
-                <td>:</td>
-                <td class="font-bold">${judulKegiatan.value || '-'}</td>
-              </tr>
-              <tr>
-                <td class="py-1">Waktu</td>
-                <td>:</td>
-                <td class="font-bold">${tanggalInput.value}, Pukul ${jamInput.value}</td>
-              </tr>
-              <tr>
-                <td class="py-1 align-top">Lokasi</td>
-                <td class="align-top">:</td>
-                <td class="font-bold align-top">${lokasiInput.value || '-'}</td>
-              </tr>
-            </tbody>
-          </table>
+            
+            <h2 style="font-size: 16px; font-weight: bold; margin-bottom: 10px;">I. DETAIL KEGIATAN</h2>
+            <table style="width: 100%; border-collapse: collapse; font-size: 14px; line-height: 1.6;">
+                <tbody>
+                    <tr>
+                        <td style="width: 150px; padding: 2px 0;">Nama Petugas</td>
+                        <td style="width: 10px;">:</td>
+                        <td style="font-weight: bold;">${namaPetugas.value || '-'}</td>
+                    </tr>
+                    ${jabatan.value ? `
+                    <tr>
+                        <td style="padding: 2px 0;">Jabatan</td>
+                        <td>:</td>
+                        <td style="font-weight: bold;">${jabatan.value}</td>
+                    </tr>` : ''}
+                    <tr>
+                        <td style="padding: 2px 0;">Judul Kegiatan</td>
+                        <td>:</td>
+                        <td style="font-weight: bold;">${judulKegiatan.value || '-'}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 2px 0;">Waktu</td>
+                        <td>:</td>
+                        <td style="font-weight: bold;">${tanggalInput.value}, Pukul ${jamInput.value}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 2px 0; vertical-align: top;">Lokasi</td>
+                        <td style="vertical-align: top;">:</td>
+                        <td style="font-weight: bold; vertical-align: top;">${lokasiInput.value || '-'}</td>
+                    </tr>
+                </tbody>
+            </table>
 
-          <hr class="my-5 border-t border-gray-300">
+            <hr style="margin: 20px 0; border-top: 1px solid #ccc;">
 
-          <h2 class="text-base font-bold mb-4 text-center">II. DOKUMENTASI FOTO</h2>
-          <div class="grid grid-cols-1 gap-5 text-center">
+            <h2 style="font-size: 16px; font-weight: bold; margin-bottom: 15px; text-align: center;">II. DOKUMENTASI FOTO</h2>
+            <div style="display: grid; grid-template-columns: 1fr; gap: 10px; text-align: center;">
       `;
+
+      // FIX: Dynamic photo sizing based on count
+      let photoWidth = '90%';
+      if (photos.length === 2) {
+        photoWidth = '75%';
+      } else if (photos.length === 3) {
+        photoWidth = '55%';
+      }
 
       if (photos.length > 0) {
         photos.forEach(photo => {
           reportHTML += `
             <div>
-              <img src="${photo}" 
-                   class="w-full max-w-[180mm] h-auto border border-gray-300 p-1 rounded mx-auto" 
-                   style="aspect-ratio: 16/9; object-fit: cover;">
+              <img src="${photo}" style="width: ${photoWidth}; height: auto; border: 1px solid #ddd; padding: 4px; border-radius: 4px; margin: 0 auto; aspect-ratio: 16/9; object-fit: cover;">
             </div>
           `;
         });
       } else {
-        reportHTML += `<p class="text-gray-500 py-10 text-center">[Foto belum diambil]</p>`;
+        reportHTML += `<p style="color: #888; text-align: center; padding: 40px 0;">[Foto belum diambil]</p>`;
       }
 
       reportHTML += `
-          </div>
+            </div>
         </div>
       `;
       reportPreview.innerHTML = reportHTML;
+    }
+
+    /**
+     * Pre-loads all images within an element to ensure they are rendered before canvas capture.
+     * @param {HTMLElement} element - The container element with images to load.
+     * @returns {Promise} - A promise that resolves when all images are loaded.
+     */
+    function waitForImages(element) {
+        const promises = [];
+        element.querySelectorAll('img').forEach(img => {
+            if (img.complete) return;
+            promises.push(new Promise(resolve => {
+                img.onload = resolve;
+                img.onerror = resolve; // Don't block if one image fails
+            }));
+        });
+        return Promise.all(promises);
     }
 
     /**
@@ -479,52 +497,47 @@
       
       showMessageBox("Membuat PDF", "Harap tunggu, laporan Anda sedang dibuat...");
 
-      // SOLUSI: Pre-render semua gambar sebelum konversi ke canvas
-      const promises = [];
-      reportElement.querySelectorAll('img').forEach(img => {
-        if (img.complete) return;
-        promises.push(new Promise(resolve => {
-          img.onload = resolve;
-          img.onerror = resolve; // Jangan blokir jika gagal
-        }));
-      });
+      // FIX: Temporarily make the report visible but off-screen for rendering
+      reportPreview.classList.remove('hidden');
+      reportPreview.style.position = 'absolute';
+      reportPreview.style.left = '-9999px';
+      reportPreview.style.top = '-9999px';
 
-      Promise.all(promises).then(() => {
-        html2canvas(reportElement, {
-          scale: 2,
-          useCORS: true,
-          logging: false,
-          windowWidth: reportElement.scrollWidth,
-          windowHeight: reportElement.scrollHeight,
-          scrollY: -window.scrollY
-        }).then(canvas => {
-          const imgData = canvas.toDataURL('image/jpeg', 0.9);
-          const pdf = new jsPDF({
-            orientation: 'portrait',
-            unit: 'mm',
-            format: 'a4'
+      waitForImages(reportElement).then(() => {
+          html2canvas(reportElement, {
+            scale: 2,
+            useCORS: true,
+            logging: false,
+            windowWidth: reportElement.scrollWidth,
+            windowHeight: reportElement.scrollHeight,
+            scrollY: -window.scrollY
+          }).then(canvas => {
+            const imgData = canvas.toDataURL('image/jpeg', 0.9);
+            const pdf = new jsPDF({
+                orientation: 'portrait',
+                unit: 'mm',
+                format: 'a4'
+            });
+
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = pdf.internal.pageSize.getHeight();
+            const canvasAspectRatio = canvas.width / canvas.height;
+            const imgHeightInPDF = pdfWidth / canvasAspectRatio;
+
+            pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, imgHeightInPDF);
+            pdf.save(`Laporan BPBD - ${judulKegiatan.value.trim() || 'Kegiatan'}.pdf`);
+            
+            messageBoxOverlay.classList.add('hidden');
+          }).catch(error => {
+            showMessageBox("Kesalahan PDF", "Gagal membuat file PDF. Silakan coba lagi.");
+            console.error("Error generating PDF:", error);
+          }).finally(() => {
+            // FIX: Always hide the preview element again
+            reportPreview.classList.add('hidden');
+            reportPreview.style.position = '';
+            reportPreview.style.left = '';
+            reportPreview.style.top = '';
           });
-
-          const pdfWidth = pdf.internal.pageSize.getWidth();
-          const pdfHeight = pdf.internal.pageSize.getHeight();
-          const imgWidth = canvas.width;
-          const imgHeight = canvas.height;
-          
-          const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
-          const imgWidthInPDF = imgWidth * ratio;
-          const imgHeightInPDF = imgHeight * ratio;
-          
-          const x = (pdfWidth - imgWidthInPDF) / 2;
-          const y = (pdfHeight - imgHeightInPDF) / 2;
-
-          pdf.addImage(imgData, 'JPEG', x, y, imgWidthInPDF, imgHeightInPDF);
-          pdf.save(`Laporan BPBD - ${judulKegiatan.value.trim() || 'Kegiatan'}.pdf`);
-          
-          messageBoxOverlay.classList.add('hidden');
-        }).catch(error => {
-          showMessageBox("Kesalahan PDF", "Gagal membuat file PDF. Silakan coba lagi.");
-          console.error("Error generating PDF:", error);
-        });
       });
     });
 
@@ -539,34 +552,37 @@
       
       showMessageBox("Membuat PNG", "Harap tunggu, gambar laporan Anda sedang dibuat...");
 
-      // SOLUSI: Pre-render semua gambar sebelum konversi ke canvas
-      const promises = [];
-      reportElement.querySelectorAll('img').forEach(img => {
-        if (img.complete) return;
-        promises.push(new Promise(resolve => {
-          img.onload = resolve;
-          img.onerror = resolve; // Jangan blokir jika gagal
-        }));
-      });
+      // FIX: Temporarily make the report visible but off-screen for rendering
+      reportPreview.classList.remove('hidden');
+      reportPreview.style.position = 'absolute';
+      reportPreview.style.left = '-9999px';
+      reportPreview.style.top = '-9999px';
 
-      Promise.all(promises).then(() => {
-        html2canvas(reportElement, {
-          scale: 2,
-          logging: false,
-          useCORS: true,
-          windowWidth: reportElement.scrollWidth,
-          windowHeight: reportElement.scrollHeight,
-          scrollY: -window.scrollY
-        }).then(canvas => {
-          const link = document.createElement('a');
-          link.download = `Laporan BPBD - ${judulKegiatan.value.trim() || 'Kegiatan'}.png`;
-          link.href = canvas.toDataURL('image/png');
-          link.click();
-          messageBoxOverlay.classList.add('hidden');
-        }).catch(error => {
-          showMessageBox("Kesalahan Unduh", "Gagal mengunduh laporan sebagai PNG. Silakan coba lagi.");
-          console.error("Error generating PNG:", error);
-        });
+      waitForImages(reportElement).then(() => {
+          html2canvas(reportElement, {
+            scale: 2,
+            logging: false,
+            useCORS: true,
+            windowWidth: reportElement.scrollWidth,
+            windowHeight: reportElement.scrollHeight,
+            scrollY: -window.scrollY
+          }).then(canvas => {
+            const link = document.createElement('a');
+            link.download = `Laporan BPBD - ${judulKegiatan.value.trim() || 'Kegiatan'}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+            
+            messageBoxOverlay.classList.add('hidden');
+          }).catch(error => {
+            showMessageBox("Kesalahan Unduh", "Gagal mengunduh laporan sebagai PNG. Silakan coba lagi.");
+            console.error("Error generating PNG:", error);
+          }).finally(() => {
+            // FIX: Always hide the preview element again
+            reportPreview.classList.add('hidden');
+            reportPreview.style.position = '';
+            reportPreview.style.left = '';
+            reportPreview.style.top = '';
+          });
       });
     });
 
