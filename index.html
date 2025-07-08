@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Laporan Kegiatan BPBD KOBAR</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    /* Styling Kamera */
+    #cameraView {
+      width: 100%;
+      background: #000;
+      aspect-ratio: 4/3;
+    }
+    
+    /* Preview Foto */
+    .photo-preview {
+      height: 120px;
+      object-fit: cover;
+      background: #f0f0f0;
+      border: 2px solid #ddd;
+    }
+    
+    /* Container A4 untuk Print */
+    .a4-container {
+      width: 210mm;
+      min-height: 297mm;
+      padding: 15mm;
+      background: white;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      margin: 10px auto;
+    }
+    
+    /* Untuk Print */
+    @media print {
+      body * {
+        visibility: hidden;
+      }
+      .a4-container, .a4-container * {
+        visibility: visible;
+      }
+      .a4-container {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 210mm;
+        height: 297mm;
+        padding: 15mm;
+        margin: 0;
+        box-shadow: none;
+      }
+    }
+    
+    /* Scrollbar untuk konten panjang */
+    .report-content {
+      max-height: calc(297mm - 30mm);
+      overflow-y: auto;
+    }
+    
+    /* Warna untuk validasi */
+    .input-error {
+      border-color: #f87171;
+    }
+  </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+  <div class="container mx-auto p-4 max-w-md">
+    <!-- Header -->
+    <header class="text-center mb-6">
+      <h1 class="text-2xl font-bold text-blue-800">LAPORAN KEGIATAN</h1>
+      <p class="text-gray-600">BPBD Kabupaten Kotawaringin Barat</p>
+    </header>
+
+    <!-- Form Input -->
+    <div class="bg-white rounded-lg shadow-md p-4 mb-4">
+      <div class="mb-3">
+        <label class="block font-medium">Nama:</label>
+        <input type="text" id="namaPetugas" class="w-full p-2 border rounded" placeholder="Nama petugas" required>
+      </div>
+      <div class="mb-3">
+        <label class="block font-medium">Jabatan (opsional):</label>
+        <input type="text" id="jabatan" class="w-full p-2 border rounded" placeholder="Jabatan">
+      </div>
+      <div class="mb-3">
+        <label class="block font-medium">Judul Kegiatan:</label>
+        <input type="text" id="judulKegiatan" class="w-full p-2 border rounded" placeholder="Judul kegiatan" required>
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        <div>
+          <label class="block font-medium">Tanggal:</label>
+          <input type="text" id="tanggal" class="w-full p-2 border rounded" readonly>
+        </div>
+        <div>
+          <label class="block font-medium">Jam:</label>
+          <input type="text" id="jam" class="w-full p-2 border rounded" readonly>
+        </div>
+      </div>
+      <div class="mt-2">
+        <label class="block font-medium">Lokasi:</label>
+        <input type="text" id="lokasi" class="w-full p-2 border rounded" placeholder="Mendeteksi GPS...">
+      </div>
+    </div>
+
+    <!-- Camera Section -->
+    <div class="bg-white rounded-lg shadow-md p-4 mb-4">
+      <label class="block font-medium mb-2">Ambil Foto (Maksimal 3):</label>
+      <div class="relative">
+        <video id="cameraView" autoplay playsinline class="rounded-lg mb-2"></video>
+        <button id="captureBtn" class="absolute bottom-4 right-4 bg-blue-600 text-white p-3 rounded-full shadow-lg">
+          <i class="fas fa-camera text-xl"></i>
+        </button>
+      </div>
+      
+      <div class="grid grid-cols-3 gap-2 mt-3" id="photoGrid">
+        <!-- Foto akan muncul di sini -->
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="grid grid-cols-2 gap-3 mb-6">
+      <button id="printBtn" class="bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg shadow">
+        <i class="fas fa-print mr-2"></i> Cetak Laporan
+      </button>
+      <button id="downloadBtn" class="bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg shadow">
+        <i class="fas fa-download mr-2"></i> Simpan PNG
+      </button>
+    </div>
+
+    <!-- Report Preview (Hidden) -->
+    <div id="reportPreview" class="hidden"></div>
+  </div>
+
+  <!-- HTML2Canvas -->
+  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+
+  <!-- Main Script -->
+  <script>
+    // Elemen DOM
+    const cameraView = document.getElementById('cameraView');
+    const captureBtn = document.getElementById('captureBtn');
+    const photoGrid = document.getElementById('photoGrid');
+    const namaPetugas = document.getElementById('namaPetugas');
+    const jabatan = document.getElementById('jabatan');
+    const judulKegiatan = document.getElementById('judulKegiatan');
+    const tanggalInput = document.getElementById('tanggal');
+    const jamInput = document.getElementById('jam');
+    const lokasiInput = document.getElementById('lokasi');
+    const printBtn = document.getElementById('printBtn');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const reportPreview = document.getElementById('reportPreview');
+
+    // Variabel
+    let photos = [];
+    let currentLocation = { lat: null, long: null };
+    let stream = null;
+
+    // 1. Inisialisasi Kamera
+    function startCamera() {
+      navigator.mediaDevices.getUserMedia({ 
+        video: { 
+          facingMode: 'environment',
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        }, 
+        audio: false 
+      })
+      .then(s => {
+        stream = s;
+        cameraView.srcObject = stream;
+      })
+      .catch(err => {
+        alert("Tidak dapat mengakses kamera: " + err.message);
+      });
+    }
+
+    // 2. Ambil Foto
+    captureBtn.addEventListener('click', () => {
+      if (photos.length >= 3) {
+        alert("Maksimal 3 foto!");
+        return;
+      }
+
+      const canvas = document.createElement('canvas');
+      canvas.width = cameraView.videoWidth;
+      canvas.height = cameraView.videoHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(cameraView, 0, 0, canvas.width, canvas.height);
+
+      photos.push(canvas.toDataURL('image/jpeg'));
+      updatePhotoGrid();
+      generateReport();
+    });
+
+    // 3. Tampilkan Foto
+    function updatePhotoGrid() {
+      photoGrid.innerHTML = '';
+      photos.forEach((photo, index) => {
+        const div = document.createElement('div');
+        div.className = 'relative';
+        div.innerHTML = `
+          <img src="${photo}" class="photo-preview w-full rounded">
+          <button onclick="deletePhoto(${index})" class="absolute top-0 right-0 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center transform translate-x-1/2 -translate-y-1/2">
+            <i class="fas fa-times text-xs"></i>
+          </button>
+        `;
+        photoGrid.appendChild(div);
+      });
+    }
+
+    // 4. Hapus Foto
+    window.deletePhoto = (index) => {
+      photos.splice(index, 1);
+      updatePhotoGrid();
+      generateReport();
+    };
+
+    // 5. Deteksi GPS
+    function getLocation() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          position => {
+            currentLocation.lat = position.coords.latitude;
+            currentLocation.long = position.coords.longitude;
+            lokasiInput.value = `Lat: ${currentLocation.lat.toFixed(6)}, Long: ${currentLocation.long.toFixed(6)}`;
+            generateReport();
+          },
+          error => {
+            lokasiInput.value = "GPS tidak aktif";
+          }
+        );
+      } else {
+        lokasiInput.value = "Browser tidak mendukung GPS";
+      }
+    }
+
+    // 6. Update Tanggal dan Jam Otomatis
+    function updateDateTime() {
+      const now = new Date();
+      
+      // Format tanggal: Hari, DD MMMM YYYY
+      const optionsDate = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+      tanggalInput.value = now.toLocaleDateString('id-ID', optionsDate);
+      
+      // Format jam: HH.MM
+      const jam = now.getHours().toString().padStart(2, '0');
+      const menit = now.getMinutes().toString().padStart(2, '0');
+      jamInput.value = `${jam}.${menit}`;
+      
+      generateReport();
+    }
+
+    // 7. Generate Laporan
+    function generateReport() {
+      // Validasi input wajib
+      const isNamaValid = namaPetugas.value.trim() !== '';
+      const isJudulValid = judulKegiatan.value.trim() !== '';
+      
+      namaPetugas.classList.toggle('input-error', !isNamaValid);
+      judulKegiatan.classList.toggle('input-error', !isJudulValid);
+
+      let reportHTML = `
+        <div class="a4-container">
+          <div class="report-content">
+            <h1 class="text-center font-bold mb-4 text-lg">LAPORAN KEGIATAN</h1>
+            <p class="mb-1">Nama: <strong>${namaPetugas.value || '-'}</strong></p>
+            ${jabatan.value ? `<p class="mb-1">Jabatan: <strong>${jabatan.value}</strong></p>` : ''}
+            <p class="mb-1">Judul Kegiatan: <strong>${judulKegiatan.value || '-'}</strong></p>
+            <p class="mb-1">Tanggal: <strong>${tanggalInput.value}</strong> Pukul <strong>${jamInput.value}</strong></p>
+            <p class="mb-3">Lokasi: <strong>${lokasiInput.value || '-'}</strong></p>
+            <hr class="my-3 border-gray-300">
+            <h2 class="text-center font-bold my-2">FOTO KEGIATAN</h2>
+            <div class="grid grid-cols-1 gap-4">
+      `;
+
+      if (photos.length > 0) {
+        photos.forEach(photo => {
+          reportHTML += `
+            <div class="flex justify-center">
+              <img src="${photo}" class="max-h-80 object-contain mx-auto border">
+            </div>
+          `;
+        });
+      } else {
+        reportHTML += `<p class="text-gray-500 text-center py-8">[Foto belum diambil]</p>`;
+      }
+
+      reportHTML += `
+            </div>
+            <hr class="my-3 border-gray-300">
+            <div class="text-center text-xs mt-6">
+              <p class="font-bold">BPBD KOBAR</p>
+              <p>(Kabupaten Kotawaringin Barat)</p>
+              <p>Jl. Tjilik Rivut II Kel. Maeurejo</p>
+              <p>Pangkalan Bun Kalimantan Tengah</p>
+              <p>78112</p>
+              <p class="mt-2 font-bold">0812-5670-1080</p>
+              <p class="font-bold">0852-4866-3008</p>
+            </div>
+          </div>
+        </div>
+      `;
+
+      reportPreview.innerHTML = reportHTML;
+    }
+
+    // 8. Cetak Laporan
+    printBtn.addEventListener('click', () => {
+      if (!validateInputs()) return;
+      
+      const printWindow = window.open('', '_blank');
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Cetak Laporan Kegiatan</title>
+          <style>
+            @page { size: A4 portrait; margin: 0; }
+            body { margin: 0; padding: 0; }
+            .a4-container {
+              width: 210mm;
+              min-height: 297mm;
+              padding: 15mm;
+              background: white;
+            }
+            img { max-height: 120mm; object-fit: contain; }
+          </style>
+        </head>
+        <body onload="window.print(); window.close()">
+          ${reportPreview.innerHTML}
+        </body>
+        </html>
+      `);
+      printWindow.document.close();
+    });
+
+    // 9. Download sebagai PNG
+    downloadBtn.addEventListener('click', () => {
+      if (!validateInputs()) return;
+
+      html2canvas(reportPreview.firstChild, {
+        scale: 2,
+        logging: false,
+        useCORS: true,
+        scrollX: 0,
+        scrollY: 0
+      }).then(canvas => {
+        const link = document.createElement('a');
+        link.download = `Laporan BPBD - ${judulKegiatan.value || 'Kegiatan'}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      });
+    });
+
+    // 10. Validasi Input
+    function validateInputs() {
+      const isNamaValid = namaPetugas.value.trim() !== '';
+      const isJudulValid = judulKegiatan.value.trim() !== '';
+      
+      namaPetugas.classList.toggle('input-error', !isNamaValid);
+      judulKegiatan.classList.toggle('input-error', !isJudulValid);
+      
+      if (!isNamaValid || !isJudulValid) {
+        alert("Harap isi Nama dan Judul Kegiatan!");
+        return false;
+      }
+      
+      if (photos.length === 0) {
+        alert("Ambil minimal 1 foto!");
+        return false;
+      }
+      
+      return true;
+    }
+
+    // 11. Inisialisasi Aplikasi
+    document.addEventListener('DOMContentLoaded', () => {
+      startCamera();
+      updateDateTime();
+      getLocation();
+      
+      // Auto-update report saat input berubah
+      [namaPetugas, jabatan, judulKegiatan].forEach(el => {
+        el.addEventListener('input', generateReport);
+      });
+      
+      // Update jam setiap menit
+      setInterval(updateDateTime, 60000);
+    });
+  </script>
+</body>
+</html>
