@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Laporan Kegiatan BPBD KOBAR</title>
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="logo.png">
   <!-- Tailwind CSS CDN for utility classes -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Font Awesome for icons -->
@@ -107,70 +109,105 @@
         transform: translateY(0);
       }
     }
+    .form-step {
+        display: none;
+    }
+    .form-step.active {
+        display: block;
+    }
   </style>
 </head>
 <body class="bg-gray-100 min-h-screen font-sans">
   <div class="container mx-auto p-4 max-w-md">
     <!-- Header Section -->
-    <header class="text-center mb-6">
-      <h1 class="text-3xl font-extrabold text-blue-800 mb-2">LAPORAN KEGIATAN</h1>
-      <p class="text-lg text-gray-600">BPBD Kabupaten Kotawaringin Barat</p>
+    <header class="text-center mb-6 flex flex-col items-center justify-center">
+        <img src="logo.png" alt="Logo BPBD" class="h-20 w-20 mb-4" onerror="this.style.display='none'">
+        <div>
+            <h1 class="text-3xl font-extrabold text-blue-800 mb-2">LAPORAN KEGIATAN</h1>
+            <p class="text-lg text-gray-600">BPBD Kabupaten Kotawaringin Barat</p>
+        </div>
     </header>
 
-    <!-- Form Input Section -->
-    <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
-      <div class="mb-4">
-        <label for="namaPetugas" class="block text-gray-700 font-semibold mb-1">Nama Petugas:</label>
-        <input type="text" id="namaPetugas" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-200" placeholder="Nama petugas" required>
-      </div>
-      <div class="mb-4">
-        <label for="jabatan" class="block text-gray-700 font-semibold mb-1">Jabatan (opsional):</label>
-        <input type="text" id="jabatan" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-200" placeholder="Jabatan">
-      </div>
-      <div class="mb-4">
-        <label for="judulKegiatan" class="block text-gray-700 font-semibold mb-1">Judul Kegiatan:</label>
-        <input type="text" id="judulKegiatan" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-200" placeholder="Judul kegiatan" required>
-      </div>
-      <div class="grid grid-cols-2 gap-4 mb-4">
-        <div>
-          <label for="tanggal" class="block text-gray-700 font-semibold mb-1">Tanggal:</label>
-          <input type="text" id="tanggal" class="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 cursor-not-allowed" readonly>
-        </div>
-        <div>
-          <label for="jam" class="block text-gray-700 font-semibold mb-1">Jam:</label>
-          <input type="text" id="jam" class="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 cursor-not-allowed" readonly>
-        </div>
-      </div>
-      <div>
-        <label for="lokasi" class="block text-gray-700 font-semibold mb-1">Lokasi:</label>
-        <input type="text" id="lokasi" class="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 cursor-not-allowed" placeholder="Mendeteksi GPS..." readonly>
-      </div>
+    <!-- Step Indicator -->
+    <div class="flex justify-between mb-4 text-sm text-gray-500">
+        <span id="step-indicator-1" class="font-bold text-blue-600">1. Data Petugas</span>
+        <span id="step-indicator-2">2. Detail Kegiatan</span>
+        <span id="step-indicator-3">3. Ambil Foto</span>
     </div>
 
-    <!-- Camera Section -->
-    <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
-      <label class="block text-gray-700 font-semibold mb-3">Ambil Foto (Maksimal 3):</label>
-      <div class="relative bg-gray-200 rounded-lg overflow-hidden">
-        <video id="cameraView" autoplay playsinline muted class="w-full rounded-lg mb-2"></video>
-        <button id="captureBtn" class="absolute bottom-4 right-4 bg-blue-600 text-white p-4 rounded-full shadow-xl hover:bg-blue-700 transition duration-200 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-300">
-          <i class="fas fa-camera text-2xl"></i>
-        </button>
-      </div>
-      
-      <div class="grid grid-cols-3 gap-3 mt-4" id="photoGrid">
-        <!-- Captured photos will be displayed here -->
-      </div>
+    <div id="form-container">
+        <!-- Step 1: Petugas Info -->
+        <div id="step-1" class="form-step active bg-white rounded-xl shadow-lg p-6">
+            <h3 class="text-xl font-semibold mb-4 text-center">Langkah 1: Data Petugas</h3>
+            <div class="mb-4">
+                <label for="namaPetugas" class="block text-gray-700 font-semibold mb-1">Nama Petugas:</label>
+                <input type="text" id="namaPetugas" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-200" placeholder="Nama petugas" required>
+            </div>
+            <div class="mb-4">
+                <label for="jabatan" class="block text-gray-700 font-semibold mb-1">Jabatan (opsional):</label>
+                <input type="text" id="jabatan" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-200" placeholder="Jabatan">
+            </div>
+        </div>
+
+        <!-- Step 2: Kegiatan Info -->
+        <div id="step-2" class="form-step bg-white rounded-xl shadow-lg p-6">
+            <h3 class="text-xl font-semibold mb-4 text-center">Langkah 2: Detail Kegiatan</h3>
+            <div class="mb-4">
+                <label for="judulKegiatan" class="block text-gray-700 font-semibold mb-1">Judul Kegiatan:</label>
+                <textarea id="judulKegiatan" rows="2" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-200" placeholder="Judul kegiatan" required></textarea>
+            </div>
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label for="tanggal" class="block text-gray-700 font-semibold mb-1">Tanggal:</label>
+                  <input type="text" id="tanggal" class="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 cursor-not-allowed" readonly>
+                </div>
+                <div>
+                  <label for="jam" class="block text-gray-700 font-semibold mb-1">Jam:</label>
+                  <input type="text" id="jam" class="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 cursor-not-allowed" readonly>
+                </div>
+            </div>
+            <div>
+                <label for="lokasi" class="block text-gray-700 font-semibold mb-1">Lokasi:</label>
+                <input type="text" id="lokasi" class="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 cursor-not-allowed" placeholder="Mendeteksi GPS..." readonly>
+            </div>
+        </div>
+
+        <!-- Step 3: Camera -->
+        <div id="step-3" class="form-step bg-white rounded-xl shadow-lg p-6">
+            <h3 class="text-xl font-semibold mb-4 text-center">Langkah 3: Ambil Foto</h3>
+            <label class="block text-gray-700 font-semibold mb-3">Ambil Foto (Maksimal 3):</label>
+            <div class="relative bg-gray-200 rounded-lg overflow-hidden">
+                <video id="cameraView" autoplay playsinline muted class="w-full rounded-lg mb-2"></video>
+                <button id="captureBtn" class="absolute bottom-4 right-4 bg-blue-600 text-white p-4 rounded-full shadow-xl hover:bg-blue-700 transition duration-200 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-300">
+                <i class="fas fa-camera text-2xl"></i>
+                </button>
+            </div>
+            <div class="grid grid-cols-3 gap-3 mt-4" id="photoGrid">
+                <!-- Captured photos will be displayed here -->
+            </div>
+        </div>
     </div>
 
-    <!-- Action Buttons -->
-    <div class="grid grid-cols-2 gap-4 mb-8">
-      <button id="savePdfBtn" class="bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg shadow-md font-semibold text-lg transition duration-200 transform hover:scale-105">
-        <i class="fas fa-file-pdf mr-2"></i> Simpan PDF
-      </button>
-      <button id="downloadBtn" class="bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg shadow-md font-semibold text-lg transition duration-200 transform hover:scale-105">
-        <i class="fas fa-download mr-2"></i> Simpan PNG
-      </button>
+    <!-- Navigation & Action Buttons -->
+    <div id="navigation-container" class="mt-6">
+        <div class="flex justify-between">
+            <button id="prevBtn" class="bg-gray-500 hover:bg-gray-600 text-white py-3 px-6 rounded-lg shadow-md font-semibold text-lg transition duration-200 transform hover:scale-105">
+                <i class="fas fa-arrow-left mr-2"></i> Kembali
+            </button>
+            <button id="nextBtn" class="bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-lg shadow-md font-semibold text-lg transition duration-200 transform hover:scale-105">
+                Lanjut <i class="fas fa-arrow-right ml-2"></i>
+            </button>
+        </div>
+        <div id="action-buttons" class="grid grid-cols-2 gap-4 mt-4 hidden">
+            <button id="savePdfBtn" class="bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg shadow-md font-semibold text-lg transition duration-200 transform hover:scale-105">
+                <i class="fas fa-file-pdf mr-2"></i> Simpan PDF
+            </button>
+            <button id="downloadBtn" class="bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg shadow-md font-semibold text-lg transition duration-200 transform hover:scale-105">
+                <i class="fas fa-download mr-2"></i> Simpan PNG
+            </button>
+        </div>
     </div>
+
 
     <!-- Report Preview (Hidden by default, used for PDF/PNG generation) -->
     <div id="reportPreview" class="hidden"></div>
@@ -204,6 +241,9 @@
     const savePdfBtn = document.getElementById('savePdfBtn');
     const downloadBtn = document.getElementById('downloadBtn');
     const reportPreview = document.getElementById('reportPreview');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const actionButtons = document.getElementById('action-buttons');
 
     // Message box elements
     const messageBoxOverlay = document.getElementById('messageBoxOverlay');
@@ -215,6 +255,11 @@
     let photos = []; // Stores data URLs of captured photos
     let stream = null; // Stores the camera media stream
     const { jsPDF } = window.jspdf; // Make jsPDF available
+    let currentStep = 1;
+    const totalSteps = 3;
+    const logoImage = new Image();
+    logoImage.src = 'logo.png'; 
+    logoImage.crossOrigin = 'Anonymous';
 
     // --- Utility Functions ---
 
@@ -261,7 +306,7 @@
     }
 
     /**
-     * Captures a photo from the active camera stream and crops it to a 16:9 aspect ratio.
+     * Captures a photo from the active camera stream and adds a logo stamp.
      */
     captureBtn.addEventListener('click', () => {
       if (!stream) {
@@ -300,8 +345,19 @@
         sy = (videoHeight - sHeight) / 2;
       }
 
+      // Draw the cropped video frame onto the canvas
       ctx.drawImage(video, sx, sy, sWidth, sHeight, 0, 0, canvas.width, canvas.height);
 
+      // --- Add Logo Stamp ---
+      try {
+        const logoSize = canvas.width * 0.1; // Logo size is 10% of canvas width
+        const margin = 15;
+        ctx.drawImage(logoImage, canvas.width - logoSize - margin, margin, logoSize, logoSize);
+      } catch (e) {
+          console.error("Error drawing logo stamp:", e);
+      }
+      // --- End Logo Stamp ---
+      
       photos.push(canvas.toDataURL('image/jpeg', 0.9));
       updatePhotoGrid();
       generateReport();
@@ -383,20 +439,12 @@
 
     /**
      * Generates the HTML content for the report preview based on form inputs and photos.
-     * Uses inline styles to ensure proper rendering in html2canvas.
      */
     function generateReport() {
-      namaPetugas.classList.toggle('input-error', namaPetugas.value.trim() === '');
-      judulKegiatan.classList.toggle('input-error', judulKegiatan.value.trim() === '');
-
-      // Using an inline SVG for the logo to prevent canvas tainting issues from external images.
       let reportHTML = `
         <div class="a4-container">
             <div style="display: flex; align-items: center; border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 20px;">
-                <svg width="80" height="80" viewBox="0 0 100 100" style="margin-right: 20px;" xmlns="http://www.w3.org/2000/svg">
-                    <rect width="100" height="100" fill="#000"/>
-                    <text x="50" y="55" font-family="Arial, sans-serif" font-size="24" fill="#FFF" text-anchor="middle" dominant-baseline="middle">BPBD</text>
-                </svg>
+                <img src="logo.png" style="width: 80px; height: 80px; margin-right: 20px;" crossorigin="anonymous" onerror="this.style.display='none'"/>
                 <div style="text-align: center; flex-grow: 1;">
                     <h1 style="font-size: 22px; font-weight: bold; margin: 0;">LAPORAN KEGIATAN</h1>
                     <p style="font-size: 16px; margin: 0;">BADAN PENANGGULANGAN BENCANA DAERAH</p>
@@ -404,6 +452,7 @@
                 </div>
             </div>
             
+            <!-- Group 1: Data -->
             <h2 style="font-size: 16px; font-weight: bold; margin-bottom: 10px;">I. DETAIL KEGIATAN</h2>
             <table style="width: 100%; border-collapse: collapse; font-size: 14px; line-height: 1.6;">
                 <tbody>
@@ -419,9 +468,9 @@
                         <td style="font-weight: bold;">${jabatan.value}</td>
                     </tr>` : ''}
                     <tr>
-                        <td style="padding: 2px 0;">Judul Kegiatan</td>
-                        <td>:</td>
-                        <td style="font-weight: bold;">${judulKegiatan.value || '-'}</td>
+                        <td style="padding: 2px 0; vertical-align: top;">Judul Kegiatan</td>
+                        <td style="vertical-align: top;">:</td>
+                        <td style="font-weight: bold; white-space: pre-wrap; vertical-align: top;">${judulKegiatan.value || '-'}</td>
                     </tr>
                     <tr>
                         <td style="padding: 2px 0;">Waktu</td>
@@ -438,11 +487,12 @@
 
             <hr style="margin: 20px 0; border-top: 1px solid #ccc;">
 
+            <!-- Group 2: Photos -->
             <h2 style="font-size: 16px; font-weight: bold; margin-bottom: 15px; text-align: center;">II. DOKUMENTASI FOTO</h2>
-            <div style="display: grid; grid-template-columns: 1fr; gap: 10px; text-align: center;">
+            <div style="display: grid; grid-template-columns: 1fr; gap: 10px; text-align: center; margin-bottom: 20px;">
       `;
 
-      // FIX: Dynamic photo sizing based on count
+      // Dynamic photo sizing based on count
       let photoWidth = '90%';
       if (photos.length === 2) {
         photoWidth = '75%';
@@ -480,7 +530,10 @@
             if (img.complete) return;
             promises.push(new Promise(resolve => {
                 img.onload = resolve;
-                img.onerror = resolve; // Don't block if one image fails
+                img.onerror = () => {
+                    console.error(`Gagal memuat gambar: ${img.src}`);
+                    resolve(); // Tetap resolve agar tidak memblokir proses
+                };
             }));
         });
         return Promise.all(promises);
@@ -489,15 +542,16 @@
     /**
      * Generates and saves the report as a PDF file.
      */
-    savePdfBtn.addEventListener('click', () => {
-      if (!validateInputs()) return;
+    function generateAndSave(format) {
+      if (!validateInputs(true)) return;
 
       const reportElement = reportPreview.querySelector('.a4-container');
       if (!reportElement) return;
       
-      showMessageBox("Membuat PDF", "Harap tunggu, laporan Anda sedang dibuat...");
+      const action = format === 'pdf' ? 'Membuat PDF' : 'Membuat PNG';
+      showMessageBox(action, "Harap tunggu, laporan Anda sedang dibuat...");
 
-      // FIX: Temporarily make the report visible but off-screen for rendering
+      // Temporarily make the report visible but off-screen for rendering
       reportPreview.classList.remove('hidden');
       reportPreview.style.position = 'absolute';
       reportPreview.style.left = '-9999px';
@@ -512,115 +566,119 @@
             windowHeight: reportElement.scrollHeight,
             scrollY: -window.scrollY
           }).then(canvas => {
-            const imgData = canvas.toDataURL('image/jpeg', 0.9);
-            const pdf = new jsPDF({
-                orientation: 'portrait',
-                unit: 'mm',
-                format: 'a4'
-            });
+            // Sanitize inputs for filename
+            const sanitize = (str) => str.replace(/[^a-zA-Z0-9_.-]/g, '_').substring(0, 30);
+            const petugas = sanitize(namaPetugas.value.trim());
+            const kegiatan = sanitize(judulKegiatan.value.trim());
+            const tgl = new Date();
+            const dateString = `${String(tgl.getDate()).padStart(2, '0')}-${String(tgl.getMonth() + 1).padStart(2, '0')}-${tgl.getFullYear()}`;
+            const fileName = `${petugas}_${kegiatan}_${dateString}`;
 
-            const pdfWidth = pdf.internal.pageSize.getWidth();
-            const pdfHeight = pdf.internal.pageSize.getHeight();
-            const canvasAspectRatio = canvas.width / canvas.height;
-            const imgHeightInPDF = pdfWidth / canvasAspectRatio;
-
-            pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, imgHeightInPDF);
-            pdf.save(`Laporan BPBD - ${judulKegiatan.value.trim() || 'Kegiatan'}.pdf`);
-            
+            if (format === 'pdf') {
+                const imgData = canvas.toDataURL('image/jpeg', 0.9);
+                const pdf = new jsPDF({
+                    orientation: 'portrait',
+                    unit: 'mm',
+                    format: 'a4'
+                });
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const imgHeightInPDF = pdfWidth / (canvas.width / canvas.height);
+                pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, imgHeightInPDF);
+                pdf.save(`${fileName}.pdf`);
+            } else {
+                const link = document.createElement('a');
+                link.download = `${fileName}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            }
             messageBoxOverlay.classList.add('hidden');
           }).catch(error => {
-            showMessageBox("Kesalahan PDF", "Gagal membuat file PDF. Silakan coba lagi.");
-            console.error("Error generating PDF:", error);
+            showMessageBox(`Kesalahan ${format.toUpperCase()}`, `Gagal membuat file ${format.toUpperCase()}. Silakan coba lagi.`);
+            console.error(`Error generating ${format}:`, error);
           }).finally(() => {
-            // FIX: Always hide the preview element again
+            // Always hide the preview element again
             reportPreview.classList.add('hidden');
             reportPreview.style.position = '';
             reportPreview.style.left = '';
             reportPreview.style.top = '';
           });
       });
-    });
+    }
+
+    savePdfBtn.addEventListener('click', () => generateAndSave('pdf'));
+    downloadBtn.addEventListener('click', () => generateAndSave('png'));
+
 
     /**
-     * Downloads the generated report as a PNG image using html2canvas.
-     */
-    downloadBtn.addEventListener('click', () => {
-      if (!validateInputs()) return;
-
-      const reportElement = reportPreview.querySelector('.a4-container');
-      if (!reportElement) return;
-      
-      showMessageBox("Membuat PNG", "Harap tunggu, gambar laporan Anda sedang dibuat...");
-
-      // FIX: Temporarily make the report visible but off-screen for rendering
-      reportPreview.classList.remove('hidden');
-      reportPreview.style.position = 'absolute';
-      reportPreview.style.left = '-9999px';
-      reportPreview.style.top = '-9999px';
-
-      waitForImages(reportElement).then(() => {
-          html2canvas(reportElement, {
-            scale: 2,
-            logging: false,
-            useCORS: true,
-            windowWidth: reportElement.scrollWidth,
-            windowHeight: reportElement.scrollHeight,
-            scrollY: -window.scrollY
-          }).then(canvas => {
-            const link = document.createElement('a');
-            link.download = `Laporan BPBD - ${judulKegiatan.value.trim() || 'Kegiatan'}.png`;
-            link.href = canvas.toDataURL('image/png');
-            link.click();
-            
-            messageBoxOverlay.classList.add('hidden');
-          }).catch(error => {
-            showMessageBox("Kesalahan Unduh", "Gagal mengunduh laporan sebagai PNG. Silakan coba lagi.");
-            console.error("Error generating PNG:", error);
-          }).finally(() => {
-            // FIX: Always hide the preview element again
-            reportPreview.classList.add('hidden');
-            reportPreview.style.position = '';
-            reportPreview.style.left = '';
-            reportPreview.style.top = '';
-          });
-      });
-    });
-
-    /**
-     * Validates required input fields and photo presence.
+     * Validates required input fields for the current step or all steps.
+     * @param {boolean} finalCheck - If true, validates all inputs. Otherwise, validates current step.
      * @returns {boolean} - True if all inputs are valid, otherwise false.
      */
-    function validateInputs() {
-      const isNamaValid = namaPetugas.value.trim() !== '';
-      const isJudulValid = judulKegiatan.value.trim() !== '';
-      
-      namaPetugas.classList.toggle('input-error', !isNamaValid);
-      judulKegiatan.classList.toggle('input-error', !isJudulValid);
-      
-      if (!isNamaValid || !isJudulValid) {
-        showMessageBox("Validasi Gagal", "Harap isi Nama Petugas dan Judul Kegiatan.");
-        return false;
-      }
-      
-      if (photos.length === 0) {
-        showMessageBox("Validasi Gagal", "Ambil minimal 1 foto kegiatan.");
-        return false;
-      }
-      
-      return true;
+    function validateInputs(finalCheck = false) {
+        if (currentStep === 1 || finalCheck) {
+            if (namaPetugas.value.trim() === '') {
+                showMessageBox("Validasi Gagal", "Harap isi Nama Petugas.");
+                namaPetugas.classList.add('input-error');
+                return false;
+            }
+            namaPetugas.classList.remove('input-error');
+        }
+        if (currentStep === 2 || finalCheck) {
+            if (judulKegiatan.value.trim() === '') {
+                showMessageBox("Validasi Gagal", "Harap isi Judul Kegiatan.");
+                judulKegiatan.classList.add('input-error');
+                return false;
+            }
+            judulKegiatan.classList.remove('input-error');
+        }
+        if (finalCheck) {
+            if (photos.length === 0) {
+                showMessageBox("Validasi Gagal", "Ambil minimal 1 foto kegiatan.");
+                return false;
+            }
+        }
+        return true;
     }
+
+    function updateStepUI() {
+        document.querySelectorAll('.form-step').forEach(step => step.classList.remove('active'));
+        document.getElementById(`step-${currentStep}`).classList.add('active');
+
+        document.querySelectorAll('[id^="step-indicator-"]').forEach(ind => {
+            ind.classList.remove('font-bold', 'text-blue-600');
+        });
+        document.getElementById(`step-indicator-${currentStep}`).classList.add('font-bold', 'text-blue-600');
+
+        prevBtn.style.display = currentStep === 1 ? 'none' : 'inline-flex';
+        nextBtn.style.display = currentStep === totalSteps ? 'none' : 'inline-flex';
+        actionButtons.classList.toggle('hidden', currentStep !== totalSteps);
+    }
+
+    nextBtn.addEventListener('click', () => {
+        if (!validateInputs()) return;
+        if (currentStep < totalSteps) {
+            currentStep++;
+            updateStepUI();
+        }
+    });
+
+    prevBtn.addEventListener('click', () => {
+        if (currentStep > 1) {
+            currentStep--;
+            updateStepUI();
+        }
+    });
 
     // --- Application Initialization ---
     document.addEventListener('DOMContentLoaded', () => {
       startCamera();
       updateDateTime();
       getLocation();
+      updateStepUI();
       
       [namaPetugas, jabatan, judulKegiatan].forEach(el => {
         el.addEventListener('input', generateReport);
       });
-      
-      setInterval(updateDateTime, 60000);
     });
   </script>
 </body>
