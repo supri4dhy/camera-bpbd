@@ -4,43 +4,46 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Laporan Kegiatan BPBD KOBAR</title>
-  <!-- Tailwind CSS -->
+  <!-- Tailwind CSS CDN untuk kelas utilitas -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Font Awesome -->
+  <!-- Font Awesome untuk ikon -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    /* Styling Kamera */
+    /* Gaya kustom untuk tampilan kamera */
     #cameraView {
       width: 100%;
       background: #000;
-      aspect-ratio: 4/3;
+      aspect-ratio: 16/9; /* Mempertahankan rasio aspek 16:9 untuk feed kamera */
+      object-fit: cover; /* Memastikan video menutupi area tanpa distorsi */
     }
     
-    /* Preview Foto */
+    /* Gaya untuk pratinjau foto */
     .photo-preview {
       height: 120px;
-      object-fit: cover;
+      object-fit: cover; /* Menutupi wadah, memotong jika perlu */
       background: #f0f0f0;
       border: 2px solid #ddd;
+      border-radius: 0.5rem; /* Sudut membulat untuk konsistensi */
     }
     
-    /* Container A4 untuk Print */
+    /* Wadah A4 untuk tata letak cetak */
     .a4-container {
-      width: 210mm;
-      min-height: 297mm;
-      padding: 15mm;
+      width: 210mm; /* Lebar A4 standar */
+      min-height: 297mm; /* Tinggi A4 standar */
+      padding: 15mm; /* Padding di sekitar konten */
       background: white;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-      margin: 10px auto;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1); /* Bayangan halus untuk pemisahan visual */
+      margin: 10px auto; /* Pusatkan wadah dengan beberapa margin */
+      box-sizing: border-box; /* Sertakan padding dalam total lebar dan tinggi elemen */
     }
     
-    /* Untuk Print */
+    /* Media queries untuk gaya khusus cetak */
     @media print {
       body * {
-        visibility: hidden;
+        visibility: hidden; /* Sembunyikan semuanya secara default saat mencetak */
       }
       .a4-container, .a4-container * {
-        visibility: visible;
+        visibility: visible; /* Jadikan wadah A4 dan anak-anaknya terlihat */
       }
       .a4-container {
         position: absolute;
@@ -50,95 +53,195 @@
         height: 297mm;
         padding: 15mm;
         margin: 0;
-        box-shadow: none;
+        box-shadow: none; /* Hapus bayangan untuk pencetakan */
+        page-break-after: always; /* Pastikan setiap laporan dicetak di halaman baru */
+      }
+      /* Pastikan gambar pas dalam area cetak */
+      .a4-container img {
+        max-width: 100%;
+        height: auto;
+        display: block;
+        margin: 0 auto;
+        border: 8px solid white; /* Bingkai putih untuk cetak */
+        padding: 2px; /* Padding internal untuk efek bingkai */
+        max-height: 60mm; /* Ukuran lebih kecil untuk cetak */
+        object-fit: contain; /* Pastikan konten pas */
+      }
+      /* Gaya untuk spasi baris yang lebih rapat di bagian penjelasan */
+      .report-info p {
+        margin-bottom: 0; /* Hapus margin bawah */
+      }
+      .report-info {
+        line-height: 1.2; /* Kurangi tinggi baris */
       }
     }
     
-    /* Scrollbar untuk konten panjang */
+    /* Scrollbar untuk konten laporan yang panjang dalam wadah A4 */
     .report-content {
-      max-height: calc(297mm - 30mm);
-      overflow-y: auto;
+      max-height: calc(297mm - 30mm); /* Tinggi maks agar pas dalam A4, memperhitungkan padding */
+      overflow-y: auto; /* Aktifkan pengguliran vertikal jika konten melebihi tinggi maks */
     }
     
-    /* Warna untuk validasi */
+    /* Gaya untuk kesalahan validasi input */
     .input-error {
-      border-color: #f87171;
+      border-color: #f87171; /* Batas merah untuk status kesalahan */
+      box-shadow: 0 0 0 2px rgba(248, 113, 113, 0.5); /* Cahaya merah lembut */
+    }
+
+    /* Gaya untuk kotak pesan kustom */
+    .message-box-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.6); /* Overlay hitam semi-transparan */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000; /* Pastikan berada di atas konten lain */
+    }
+
+    .message-box-content {
+      background-color: white;
+      padding: 2rem;
+      border-radius: 0.75rem; /* Sudut membulat */
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2); /* Bayangan lebih kuat */
+      text-align: center;
+      max-width: 90%;
+      width: 400px; /* Lebar tetap untuk kotak pesan */
+      transform: translateY(-20px); /* Sedikit bergerak ke atas untuk animasi halus */
+      opacity: 0; /* Mulai tersembunyi */
+      animation: fadeInPop 0.3s forwards; /* Animasi untuk muncul */
+    }
+
+    .message-box-content h3 {
+      font-weight: bold;
+      font-size: 1.25rem; /* Font lebih besar untuk judul */
+      margin-bottom: 1rem;
+      color: #1f2937; /* Teks abu-abu gelap */
+    }
+
+    .message-box-content p {
+      margin-bottom: 1.5rem;
+      color: #4b5563; /* Teks abu-abu sedang */
+    }
+
+    .message-box-content button {
+      background-color: #2563eb; /* Tombol biru */
+      color: white;
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.5rem;
+      font-weight: 600;
+      transition: background-color 0.2s ease-in-out; /* Transisi halus saat hover */
+    }
+
+    .message-box-content button:hover {
+      background-color: #1d4ed8; /* Biru lebih gelap saat hover */
+    }
+
+    /* Animasi keyframe untuk kotak pesan */
+    @keyframes fadeInPop {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    /* Gaya untuk spasi baris yang lebih rapat di bagian penjelasan */
+    .report-info p {
+      margin-bottom: 0; /* Hapus margin bawah */
+    }
+    .report-info {
+      line-height: 1.2; /* Kurangi tinggi baris */
     }
   </style>
 </head>
-<body class="bg-gray-100 min-h-screen">
+<body class="bg-gray-100 min-h-screen font-sans">
   <div class="container mx-auto p-4 max-w-md">
-    <!-- Header -->
+    <!-- Bagian Header -->
     <header class="text-center mb-6">
-      <h1 class="text-2xl font-bold text-blue-800">LAPORAN KEGIATAN</h1>
-      <p class="text-gray-600">BPBD Kabupaten Kotawaringin Barat</p>
+      <h1 class="text-3xl font-extrabold text-blue-800 mb-2">LAPORAN KEGIATAN</h1>
+      <p class="text-lg text-gray-600">BPBD Kabupaten Kotawaringin Barat</p>
     </header>
 
-    <!-- Form Input -->
-    <div class="bg-white rounded-lg shadow-md p-4 mb-4">
-      <div class="mb-3">
-        <label class="block font-medium">Nama:</label>
-        <input type="text" id="namaPetugas" class="w-full p-2 border rounded" placeholder="Nama petugas" required>
+    <!-- Bagian Input Formulir -->
+    <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+      <div class="mb-4">
+        <label for="namaPetugas" class="block text-gray-700 font-semibold mb-1">Nama Petugas:</label>
+        <input type="text" id="namaPetugas" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-200" placeholder="Nama petugas" required>
       </div>
-      <div class="mb-3">
-        <label class="block font-medium">Jabatan (opsional):</label>
-        <input type="text" id="jabatan" class="w-full p-2 border rounded" placeholder="Jabatan">
+      <div class="mb-4">
+        <label for="jabatan" class="block text-gray-700 font-semibold mb-1">Jabatan (opsional):</label>
+        <input type="text" id="jabatan" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-200" placeholder="Jabatan">
       </div>
-      <div class="mb-3">
-        <label class="block font-medium">Judul Kegiatan:</label>
-        <input type="text" id="judulKegiatan" class="w-full p-2 border rounded" placeholder="Judul kegiatan" required>
+      <div class="mb-4">
+        <label for="judulKegiatan" class="block text-gray-700 font-semibold mb-1">Judul Kegiatan:</label>
+        <input type="text" id="judulKegiatan" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-200" placeholder="Judul kegiatan" required>
       </div>
-      <div class="grid grid-cols-2 gap-2">
+      <div class="grid grid-cols-2 gap-4 mb-4">
         <div>
-          <label class="block font-medium">Tanggal:</label>
-          <input type="text" id="tanggal" class="w-full p-2 border rounded" readonly>
+          <label for="tanggal" class="block text-gray-700 font-semibold mb-1">Tanggal:</label>
+          <input type="text" id="tanggal" class="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 cursor-not-allowed" readonly>
         </div>
         <div>
-          <label class="block font-medium">Jam:</label>
-          <input type="text" id="jam" class="w-full p-2 border rounded" readonly>
+          <label for="jam" class="block text-gray-700 font-semibold mb-1">Jam:</label>
+          <input type="text" id="jam" class="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 cursor-not-allowed" readonly>
         </div>
       </div>
-      <div class="mt-2">
-        <label class="block font-medium">Lokasi:</label>
-        <input type="text" id="lokasi" class="w-full p-2 border rounded" placeholder="Mendeteksi GPS...">
+      <div>
+        <label for="lokasi" class="block text-gray-700 font-semibold mb-1">Lokasi:</label>
+        <input type="text" id="lokasi" class="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 cursor-not-allowed" placeholder="Mendeteksi GPS..." readonly>
       </div>
     </div>
 
-    <!-- Camera Section -->
-    <div class="bg-white rounded-lg shadow-md p-4 mb-4">
-      <label class="block font-medium mb-2">Ambil Foto (Maksimal 3):</label>
-      <div class="relative">
-        <video id="cameraView" autoplay playsinline class="rounded-lg mb-2"></video>
-        <button id="captureBtn" class="absolute bottom-4 right-4 bg-blue-600 text-white p-3 rounded-full shadow-lg">
-          <i class="fas fa-camera text-xl"></i>
+    <!-- Bagian Kamera -->
+    <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+      <label class="block text-gray-700 font-semibold mb-3">Ambil Foto (Maksimal 3):</label>
+      <div class="relative bg-gray-200 rounded-lg overflow-hidden">
+        <video id="cameraView" autoplay playsinline class="w-full rounded-lg mb-2"></video>
+        <button id="captureBtn" class="absolute bottom-4 right-4 bg-blue-600 text-white p-4 rounded-full shadow-xl hover:bg-blue-700 transition duration-200 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-300">
+          <i class="fas fa-camera text-2xl"></i>
         </button>
       </div>
       
-      <div class="grid grid-cols-3 gap-2 mt-3" id="photoGrid">
-        <!-- Foto akan muncul di sini -->
+      <div class="grid grid-cols-3 gap-3 mt-4" id="photoGrid">
+        <!-- Foto yang diambil akan ditampilkan di sini -->
       </div>
     </div>
 
-    <!-- Action Buttons -->
-    <div class="grid grid-cols-2 gap-3 mb-6">
-      <button id="printBtn" class="bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg shadow">
+    <!-- Tombol Aksi -->
+    <div class="grid grid-cols-2 gap-4 mb-8">
+      <button id="printBtn" class="bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg shadow-md font-semibold text-lg transition duration-200 transform hover:scale-105">
         <i class="fas fa-print mr-2"></i> Cetak Laporan
       </button>
-      <button id="downloadBtn" class="bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg shadow">
+      <button id="downloadBtn" class="bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg shadow-md font-semibold text-lg transition duration-200 transform hover:scale-105">
         <i class="fas fa-download mr-2"></i> Simpan PNG
       </button>
     </div>
 
-    <!-- Report Preview (Hidden) -->
+    <!-- Pratinjau Laporan (Tersembunyi secara default, digunakan untuk cetak/unduh) -->
     <div id="reportPreview" class="hidden"></div>
   </div>
 
-  <!-- HTML2Canvas -->
+  <!-- HTML Kotak Pesan Kustom -->
+  <div id="messageBoxOverlay" class="message-box-overlay hidden">
+    <div class="message-box-content">
+      <h3 id="messageBoxTitle">Pesan</h3>
+      <p id="messageBoxText">Ini adalah pesan default.</p>
+      <button id="messageBoxCloseBtn">OK</button>
+    </div>
+  </div>
+
+  <!-- Pustaka HTML2Canvas untuk menangkap HTML sebagai gambar -->
   <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 
-  <!-- Main Script -->
+  <!-- Skrip Aplikasi Utama -->
   <script>
-    // Elemen DOM
+    // --- Referensi Elemen DOM ---
     const cameraView = document.getElementById('cameraView');
     const captureBtn = document.getElementById('captureBtn');
     const photoGrid = document.getElementById('photoGrid');
@@ -152,57 +255,98 @@
     const downloadBtn = document.getElementById('downloadBtn');
     const reportPreview = document.getElementById('reportPreview');
 
-    // Variabel
-    let photos = [];
-    let currentLocation = { lat: null, long: null };
-    let stream = null;
+    // Elemen kotak pesan
+    const messageBoxOverlay = document.getElementById('messageBoxOverlay');
+    const messageBoxTitle = document.getElementById('messageBoxTitle');
+    const messageBoxText = document.getElementById('messageBoxText');
+    const messageBoxCloseBtn = document.getElementById('messageBoxCloseBtn');
 
-    // 1. Inisialisasi Kamera
+    // --- Variabel Status Aplikasi ---
+    let photos = []; // Menyimpan URL data foto yang diambil
+    let currentLocation = { lat: null, long: null }; // Menyimpan koordinat GPS
+    let stream = null; // Menyimpan aliran media kamera
+
+    // --- Fungsi Utilitas ---
+
+    /**
+     * Menampilkan kotak pesan kustom alih-alih alert() bawaan.
+     * @param {string} title - Judul kotak pesan.
+     * @param {string} message - Pesan yang akan ditampilkan.
+     */
+    function showMessageBox(title, message) {
+      messageBoxTitle.textContent = title;
+      messageBoxText.textContent = message;
+      messageBoxOverlay.classList.remove('hidden'); // Tampilkan overlay
+    }
+
+    // Event listener untuk menutup kotak pesan
+    messageBoxCloseBtn.addEventListener('click', () => {
+      messageBoxOverlay.classList.add('hidden'); // Sembunyikan overlay
+    });
+
+    /**
+     * Menginisialisasi dan memulai aliran kamera.
+     * Meminta akses ke kamera pengguna (lebih disukai yang menghadap lingkungan).
+     */
     function startCamera() {
       navigator.mediaDevices.getUserMedia({ 
         video: { 
-          facingMode: 'environment',
-          width: { ideal: 1280 },
+          facingMode: 'environment', // Lebih suka kamera belakang pada perangkat seluler
+          width: { ideal: 1280 }, // Meminta resolusi video ideal
           height: { ideal: 720 }
         }, 
-        audio: false 
+        audio: false // Tidak perlu audio untuk aplikasi ini
       })
       .then(s => {
-        stream = s;
-        cameraView.srcObject = stream;
+        stream = s; // Simpan objek aliran
+        cameraView.srcObject = stream; // Atur sumber elemen video ke aliran
       })
       .catch(err => {
-        alert("Tidak dapat mengakses kamera: " + err.message);
+        // Tampilkan pesan kesalahan jika akses kamera ditolak atau gagal
+        showMessageBox("Kesalahan Kamera", "Tidak dapat mengakses kamera. Pastikan Anda memberikan izin dan tidak ada aplikasi lain yang menggunakan kamera. Error: " + err.message);
+        console.error("Error accessing camera:", err);
       });
     }
 
-    // 2. Ambil Foto
+    /**
+     * Mengambil foto dari aliran kamera yang aktif.
+     * Membatasi jumlah foto hingga 3.
+     */
     captureBtn.addEventListener('click', () => {
+      if (!stream) {
+        showMessageBox("Kamera Tidak Aktif", "Kamera belum diinisialisasi. Mohon tunggu atau refresh halaman.");
+        return;
+      }
       if (photos.length >= 3) {
-        alert("Maksimal 3 foto!");
+        showMessageBox("Batas Foto Tercapai", "Anda hanya dapat mengambil maksimal 3 foto.");
         return;
       }
 
+      // Buat elemen kanvas untuk menggambar bingkai video saat ini
       const canvas = document.createElement('canvas');
       canvas.width = cameraView.videoWidth;
       canvas.height = cameraView.videoHeight;
       const ctx = canvas.getContext('2d');
-      ctx.drawImage(cameraView, 0, 0, canvas.width, canvas.height);
+      ctx.drawImage(cameraView, 0, 0, canvas.width, canvas.height); // Gambar bingkai video ke kanvas
 
-      photos.push(canvas.toDataURL('image/jpeg'));
-      updatePhotoGrid();
-      generateReport();
+      // Konversi konten kanvas ke URL data JPEG dan tambahkan ke array foto
+      photos.push(canvas.toDataURL('image/jpeg', 0.9)); // Kualitas 0.9 untuk keseimbangan yang baik
+      updatePhotoGrid(); // Perbarui kisi foto yang ditampilkan
+      generateReport(); // Buat ulang pratinjau laporan dengan foto baru
     });
 
-    // 3. Tampilkan Foto
+    /**
+     * Memperbarui tampilan kisi foto dengan foto yang diambil saat ini.
+     * Menghapus foto yang ada dan menambahkan yang baru, termasuk tombol hapus.
+     */
     function updatePhotoGrid() {
-      photoGrid.innerHTML = '';
+      photoGrid.innerHTML = ''; // Hapus foto saat ini
       photos.forEach((photo, index) => {
         const div = document.createElement('div');
-        div.className = 'relative';
+        div.className = 'relative group'; // Tambahkan grup untuk efek hover
         div.innerHTML = `
-          <img src="${photo}" class="photo-preview w-full rounded">
-          <button onclick="deletePhoto(${index})" class="absolute top-0 right-0 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center transform translate-x-1/2 -translate-y-1/2">
+          <img src="${photo}" class="photo-preview w-full rounded-lg shadow-sm transition-transform duration-200 group-hover:scale-105">
+          <button onclick="deletePhoto(${index})" class="absolute top-0 right-0 bg-red-500 text-white rounded-full w-7 h-7 flex items-center justify-center transform translate-x-1/3 -translate-y-1/3 opacity-0 group-hover:opacity-100 transition-opacity duration-200 focus:outline-none focus:ring-2 focus:ring-red-400">
             <i class="fas fa-times text-xs"></i>
           </button>
         `;
@@ -210,106 +354,140 @@
       });
     }
 
-    // 4. Hapus Foto
+    /**
+     * Menghapus foto dari array foto berdasarkan indeksnya.
+     * @param {number} index - Indeks foto yang akan dihapus.
+     */
     window.deletePhoto = (index) => {
-      photos.splice(index, 1);
-      updatePhotoGrid();
-      generateReport();
+      photos.splice(index, 1); // Hapus foto dari array
+      updatePhotoGrid(); // Render ulang kisi foto
+      generateReport(); // Buat ulang pratinjau laporan
     };
 
-    // 5. Deteksi GPS
+    /**
+     * Mengambil lokasi GPS saat ini menggunakan Geolocation API.
+     * Memperbarui bidang input lokasi dan memicu pembuatan laporan.
+     */
     function getLocation() {
       if (navigator.geolocation) {
+        lokasiInput.value = "Mencari lokasi..."; // Menunjukkan bahwa lokasi sedang diambil
         navigator.geolocation.getCurrentPosition(
           position => {
             currentLocation.lat = position.coords.latitude;
             currentLocation.long = position.coords.longitude;
             lokasiInput.value = `Lat: ${currentLocation.lat.toFixed(6)}, Long: ${currentLocation.long.toFixed(6)}`;
-            generateReport();
+            generateReport(); // Buat laporan setelah mendapatkan lokasi
           },
           error => {
-            lokasiInput.value = "GPS tidak aktif";
-          }
+            // Tangani kesalahan geolokasi
+            let errorMessage = "Tidak dapat menemukan lokasi.";
+            switch(error.code) {
+              case error.PERMISSION_DENIED:
+                errorMessage = "Izin lokasi ditolak. Harap izinkan akses lokasi.";
+                break;
+              case error.POSITION_UNAVAILABLE:
+                errorMessage = "Informasi lokasi tidak tersedia.";
+                break;
+              case error.TIMEOUT:
+                errorMessage = "Waktu habis saat mencoba mendapatkan lokasi.";
+                break;
+              case error.UNKNOWN_ERROR:
+                errorMessage = "Terjadi kesalahan yang tidak diketahui.";
+                break;
+            }
+            lokasiInput.value = errorMessage;
+            showMessageBox("Kesalahan Lokasi", errorMessage);
+            generateReport(); // Buat laporan meskipun lokasi gagal
+          },
+          { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 } // Opsi untuk geolokasi
         );
       } else {
         lokasiInput.value = "Browser tidak mendukung GPS";
+        showMessageBox("Browser Tidak Didukung", "Browser Anda tidak mendukung Geolocation API.");
       }
     }
 
-    // 6. Update Tanggal dan Jam Otomatis
+    /**
+     * Memperbarui bidang input tanggal dan waktu dengan tanggal dan waktu lokal saat ini.
+     * Memformat tanggal sebagai "Hari, DD MMMM,"%Y" dan waktu sebagai "HH.MM".
+     */
     function updateDateTime() {
       const now = new Date();
       
-      // Format tanggal: Hari, DD MMMM YYYY
+      // Opsi untuk memformat tanggal
       const optionsDate = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-      tanggalInput.value = now.toLocaleDateString('id-ID', optionsDate);
+      tanggalInput.value = now.toLocaleDateString('id-ID', optionsDate); // Format tanggal untuk lokal Indonesia
       
-      // Format jam: HH.MM
+      // Format jam dan menit dengan nol di depan jika perlu
       const jam = now.getHours().toString().padStart(2, '0');
       const menit = now.getMinutes().toString().padStart(2, '0');
-      jamInput.value = `${jam}.${menit}`;
+      jamInput.value = `${jam}.${menit}`; // Atur waktu yang diformat
       
-      generateReport();
+      generateReport(); // Buat ulang pratinjau laporan
     }
 
-    // 7. Generate Laporan
+    /**
+     * Membuat konten HTML untuk pratinjau laporan berdasarkan input formulir dan foto saat ini.
+     * Juga menerapkan umpan balik validasi visual ke bidang input yang diperlukan.
+     */
     function generateReport() {
-      // Validasi input wajib
+      // Validasi bidang input yang diperlukan
       const isNamaValid = namaPetugas.value.trim() !== '';
       const isJudulValid = judulKegiatan.value.trim() !== '';
       
+      // Alihkan kelas kesalahan berdasarkan status validasi
       namaPetugas.classList.toggle('input-error', !isNamaValid);
       judulKegiatan.classList.toggle('input-error', !isJudulValid);
 
+      // Buat konten HTML laporan
       let reportHTML = `
         <div class="a4-container">
           <div class="report-content">
-            <h1 class="text-center font-bold mb-4 text-lg">LAPORAN KEGIATAN</h1>
-            <p class="mb-1">Nama: <strong>${namaPetugas.value || '-'}</strong></p>
-            ${jabatan.value ? `<p class="mb-1">Jabatan: <strong>${jabatan.value}</strong></p>` : ''}
-            <p class="mb-1">Judul Kegiatan: <strong>${judulKegiatan.value || '-'}</strong></p>
-            <p class="mb-1">Tanggal: <strong>${tanggalInput.value}</strong> Pukul <strong>${jamInput.value}</strong></p>
-            <p class="mb-3">Lokasi: <strong>${lokasiInput.value || '-'}</strong></p>
-            <hr class="my-3 border-gray-300">
-            <h2 class="text-center font-bold my-2">FOTO KEGIATAN</h2>
-            <div class="grid grid-cols-1 gap-4">
+            <h1 class="text-center font-bold mb-6 text-2xl text-blue-800">LAPORAN KEGIATAN</h1>
+            <div class="report-info"> <!-- Menghapus kelas leading-tight untuk kontrol yang lebih baik -->
+                <p>Nama:\t\t\t\t<strong>${namaPetugas.value || '-'}</strong></p>
+                ${jabatan.value ? `<p>Jabatan:\t\t\t<strong>${jabatan.value}</strong></p>` : ''}
+                <p>Judul Kegiatan:\t\t<strong>${judulKegiatan.value || '-'}</strong></p>
+                <p>Tanggal:\t\t\t<strong>${tanggalInput.value}</strong> Pukul <strong>${jamInput.value}</strong></p>
+                <p>Lokasi:\t\t\t\t<strong>${lokasiInput.value || '-'}</strong></p>
+            </div>
+            <hr class="my-6 border-gray-300">
+            <h2 class="text-center font-bold my-4 text-xl text-blue-800">FOTO KEGIATAN</h2>
+            <div class="grid grid-cols-1 gap-6">
       `;
 
+      // Tambahkan foto yang diambil ke HTML laporan
       if (photos.length > 0) {
         photos.forEach(photo => {
           reportHTML += `
             <div class="flex justify-center">
-              <img src="${photo}" class="max-h-80 object-contain mx-auto border">
+              <img src="${photo}" class="max-h-48 w-auto aspect-video object-contain mx-auto border-8 border-white p-2 rounded-lg shadow-md">
             </div>
           `;
         });
       } else {
-        reportHTML += `<p class="text-gray-500 text-center py-8">[Foto belum diambil]</p>`;
+        reportHTML += `<p class="text-gray-500 text-center py-12 text-lg">[Foto belum diambil]</p>`;
       }
 
       reportHTML += `
             </div>
-            <hr class="my-3 border-gray-300">
-            <div class="text-center text-xs mt-6">
-              <p class="font-bold">BPBD KOBAR</p>
-              <p>(Kabupaten Kotawaringin Barat)</p>
-              <p>Jl. Tjilik Rivut II Kel. Maeurejo</p>
-              <p>Pangkalan Bun Kalimantan Tengah</p>
-              <p>78112</p>
-              <p class="mt-2 font-bold">0812-5670-1080</p>
-              <p class="font-bold">0852-4866-3008</p>
-            </div>
+            <hr class="my-6 border-gray-300">
+            <!-- Bagian catatan kaki dihapus sesuai permintaan -->
           </div>
         </div>
       `;
 
-      reportPreview.innerHTML = reportHTML;
+      reportPreview.innerHTML = reportHTML; // Perbarui div pratinjau laporan yang tersembunyi
     }
 
-    // 8. Cetak Laporan
+    /**
+     * Memicu dialog cetak browser untuk laporan yang dihasilkan.
+     * Melakukan validasi input sebelum mencetak.
+     */
     printBtn.addEventListener('click', () => {
-      if (!validateInputs()) return;
-      
+      if (!validateInputs()) return; // Validasi input sebelum melanjutkan
+
+      // Buat jendela baru untuk mencetak guna memastikan pemformatan A4 yang benar
       const printWindow = window.open('', '_blank');
       printWindow.document.write(`
         <!DOCTYPE html>
@@ -317,77 +495,140 @@
         <head>
           <title>Cetak Laporan Kegiatan</title>
           <style>
-            @page { size: A4 portrait; margin: 0; }
-            body { margin: 0; padding: 0; }
+            /* Gaya khusus cetak untuk tata letak A4 */
+            @page { size: F4 portrait; margin: 0; }
+            body { margin: 0; padding: 0; font-family: sans-serif; }
             .a4-container {
               width: 210mm;
-              min-height: 297mm;
+              min-height: 330mm;
               padding: 15mm;
               background: white;
+              box-sizing: border-box;
             }
-            img { max-height: 120mm; object-fit: contain; }
+            /* Pastikan gambar pas dalam area cetak */
+            .a4-container img { 
+                max-width: 100%;
+                height: auto;
+                display: block;
+                margin: 0 auto;
+                border: 8px solid white; /* Bingkai putih */
+                padding: 2px; /* Padding internal untuk efek bingkai */
+                max-height: 60mm; /* Ukuran lebih kecil untuk cetak */
+                object-fit: contain; /* Pastikan konten pas */
+                aspect-ratio: 16/9; /* Rasio aspek 16:9 untuk cetak */
+            }
+            /* Gaya teks dasar untuk cetak */
+            h1, h2, p, strong {
+                color: #000; /* Pastikan teks hitam untuk cetak */
+            }
+            .text-blue-800 { color: #1e40af; } /* Gunakan biru lebih gelap untuk cetak */
+            .text-blue-700 { color: #1d4ed8; }
+            .text-gray-800 { color: #1f2937; }
+            .text-gray-700 { color: #374151; }
+            .text-gray-500 { color: #6b7280; }
+            .font-bold { font-weight: bold; }
+            .text-center { text-align: center; }
+            .mb-2 { margin-bottom: 0.5rem; }
+            .mb-4 { margin-bottom: 1rem; }
+            .mb-6 { margin-bottom: 1.5rem; }
+            .my-2 { margin-top: 1rem; margin-bottom: 1rem; }
+            .my-2 { margin-top: 1.5rem; margin-bottom: 1.5rem; }
+            .mt-2 { margin-top: 1rem; }
+            .mt-2 { margin-top: 2rem; }
+            .grid { display: grid; }
+            .gap-3 { grid-gap: 1.5rem; }
+            .flex { display: flex; }
+            .justify-center { justify-content: center; }
+            .border { border: 1px solid #e5e7eb; }
+            .rounded-lg { border-radius: 0.5rem; }
+            .shadow-md { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); }
+            /* Gaya untuk spasi baris yang lebih rapat di bagian penjelasan */
+            .report-info p {
+                margin-bottom: 0; /* Hapus margin bawah */
+            }
+            .report-info {
+                line-height: 1; /* Kurangi tinggi baris */
+            }
           </style>
         </head>
         <body onload="window.print(); window.close()">
-          ${reportPreview.innerHTML}
+          ${reportPreview.innerHTML} <!-- Sisipkan HTML laporan yang dihasilkan -->
         </body>
         </html>
       `);
-      printWindow.document.close();
+      printWindow.document.close(); // Tutup aliran dokumen
     });
 
-    // 9. Download sebagai PNG
+    /**
+     * Mengunduh laporan yang dihasilkan sebagai gambar PNG menggunakan html2canvas.
+     * Melakukan validasi input sebelum mengunduh.
+     */
     downloadBtn.addEventListener('click', () => {
-      if (!validateInputs()) return;
+      if (!validateInputs()) return; // Validasi input sebelum melanjutkan
 
-      html2canvas(reportPreview.firstChild, {
-        scale: 2,
-        logging: false,
-        useCORS: true,
-        scrollX: 0,
-        scrollY: 0
+      // Gunakan html2canvas untuk merender div pratinjau laporan sebagai kanvas
+      html2canvas(reportPreview.firstChild, { // Targetkan .a4-container secara langsung
+        scale: 2, // Tingkatkan skala untuk gambar resolusi lebih tinggi
+        logging: false, // Nonaktifkan logging ke konsol
+        useCORS: true, // Aktifkan CORS untuk gambar jika ada yang eksternal digunakan (tidak di sini, tetapi praktik yang baik)
+        scrollX: 0, // Mencegah masalah pengguliran horizontal
+        scrollY: 0, // Mencegah masalah pengguliran vertikal
+        windowWidth: reportPreview.firstChild.scrollWidth, // Atur lebar jendela ke lebar konten
+        windowHeight: reportPreview.firstChild.scrollHeight // Atur tinggi jendela ke tinggi konten
       }).then(canvas => {
+        // Buat elemen tautan sementara untuk memicu unduhan
         const link = document.createElement('a');
+        // Atur nama file unduhan
         link.download = `Laporan BPBD - ${judulKegiatan.value || 'Kegiatan'}.png`;
+        // Atur href ke URL data kanvas (format PNG)
         link.href = canvas.toDataURL('image/png');
-        link.click();
+        link.click(); // Klik tautan secara terprogram untuk memulai unduhan
+      }).catch(error => {
+        showMessageBox("Kesalahan Unduh", "Gagal mengunduh laporan sebagai PNG. Coba lagi.");
+        console.error("Error generating PNG:", error);
       });
     });
 
-    // 10. Validasi Input
+    /**
+     * Memvalidasi bidang input yang diperlukan (Nama dan Judul Kegiatan) dan memeriksa apakah setidaknya satu foto telah diambil.
+     * Menampilkan kotak pesan kustom untuk kesalahan validasi.
+     * @returns {boolean} - True jika semua input valid, false jika tidak.
+     */
     function validateInputs() {
       const isNamaValid = namaPetugas.value.trim() !== '';
       const isJudulValid = judulKegiatan.value.trim() !== '';
       
+      // Terapkan gaya kesalahan
       namaPetugas.classList.toggle('input-error', !isNamaValid);
       judulKegiatan.classList.toggle('input-error', !isJudulValid);
       
       if (!isNamaValid || !isJudulValid) {
-        alert("Harap isi Nama dan Judul Kegiatan!");
+        showMessageBox("Validasi Gagal", "Harap isi Nama Petugas dan Judul Kegiatan.");
         return false;
       }
       
       if (photos.length === 0) {
-        alert("Ambil minimal 1 foto!");
+        showMessageBox("Validasi Gagal", "Ambil minimal 1 foto kegiatan.");
         return false;
       }
       
-      return true;
+      return true; // Semua input valid
     }
 
-    // 11. Inisialisasi Aplikasi
+    // --- Inisialisasi Aplikasi ---
     document.addEventListener('DOMContentLoaded', () => {
+      // Mulai kamera, dapatkan tanggal/waktu saat ini, dan lokasi saat DOM dimuat sepenuhnya
       startCamera();
       updateDateTime();
       getLocation();
       
-      // Auto-update report saat input berubah
+      // Tambahkan event listener ke bidang input untuk membuat ulang laporan saat berubah
       [namaPetugas, jabatan, judulKegiatan].forEach(el => {
         el.addEventListener('input', generateReport);
       });
       
-      // Update jam setiap menit
-      setInterval(updateDateTime, 60000);
+      // Perbarui waktu setiap menit agar tetap terkini
+      setInterval(updateDateTime, 60000); // 60000 milidetik = 1 menit
     });
   </script>
 </body>
