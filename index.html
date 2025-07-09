@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Laporan Kegiatan BPBD KOBAR</title>
     <!-- Favicon -->
-    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="icon" type="image/png" href="favicon.ico">
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome -->
@@ -112,6 +112,28 @@
             animation: spin 1s ease-in-out infinite;
         }
         
+        
+        #timer-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0,0,0,0.5);
+            color: white;
+            font-size: 8rem;
+            font-weight: bold;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+        #timer-overlay.visible {
+            opacity: 1;
+        }
+
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
@@ -120,7 +142,10 @@
 <body class="bg-gray-100 min-h-screen font-sans">
     <div class="container mx-auto p-4 max-w-md flex flex-col">
         <!-- Header Section -->
-        <header class="text-center mb-6 flex-shrink-0">
+        <header class="relative text-center mb-6 flex-shrink-0">
+             <button id="fullscreenBtn" class="absolute top-0 right-0 bg-white/50 backdrop-blur-sm text-gray-700 w-10 h-10 rounded-full shadow-md flex items-center justify-center transform hover:scale-110 transition-transform">
+                <i class="fas fa-expand"></i>
+            </button>                
             <img src="logo.png" alt="Logo BPBD" class="h-20 w-20 mb-4 rounded-full mx-auto" onerror="this.src='logo.png';">
             <div>
                 <h1 class="text-3xl font-extrabold text-blue-800 mb-2">LAPORAN KEGIATAN</h1>
@@ -198,9 +223,18 @@
                     <label class="block text-gray-700 font-semibold mb-3">Ambil Foto (Maksimal 3):</label>
                     <div class="relative bg-gray-200 rounded-lg overflow-hidden">
                         <video id="cameraView" autoplay playsinline muted class="w-full rounded-lg mb-2"></video>
-                        <button id="captureBtn" class="absolute bottom-4 right-4 bg-blue-600 text-white p-4 rounded-full shadow-xl hover:bg-blue-700 transition duration-200 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-300">
-                            <i class="fas fa-camera text-2xl"></i>
-                        </button>
+                         <div id="timer-overlay"></div>
+                        <div class="absolute bottom-4 w-full flex justify-center items-center gap-4">
+                            <button id="timerBtn" class="bg-white/80 backdrop-blur-sm text-gray-800 w-12 h-12 rounded-full shadow-lg flex items-center justify-center transform hover:scale-110 transition-all duration-300 ease-in-out">
+                                <i class="fas fa-stopwatch"></i>
+                            </button>
+                            <button id="captureBtn" class="bg-blue-600 text-white w-16 h-16 rounded-full shadow-xl flex items-center justify-center transform hover:scale-105 transition-transform duration-200 focus:outline-none focus:ring-4 focus:ring-blue-300">
+                                <i class="fas fa-camera text-2xl"></i>
+                            </button>
+                             <button id="switchCameraBtn" class="bg-white/80 backdrop-blur-sm text-gray-800 w-12 h-12 rounded-full shadow-lg flex items-center justify-center transform hover:scale-110 transition-all duration-300 ease-in-out">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                        </div>
                     </div>
                     <div class="grid grid-cols-3 gap-3 mt-4" id="photoGrid">
                         <!-- Captured photos will be displayed here -->
@@ -269,6 +303,10 @@
         const mapContainer = document.getElementById('map');
         const refreshLocationBtn = document.getElementById('refreshLocationBtn');
         const floatingNav = document.getElementById('floating-nav');
+        const switchCameraBtn = document.getElementById('switchCameraBtn');
+        const timerBtn = document.getElementById('timerBtn');
+        const timerOverlay = document.getElementById('timer-overlay');
+        const fullscreenBtn = document.getElementById('fullscreenBtn');
 
         // Error message elements
         const namaPetugasError = document.getElementById('namaPetugasError');
@@ -297,6 +335,10 @@
         let map = null;
         let locationMarker = null;
         let currentPosition = null;
+        let currentFacingMode = 'environment';
+        let timerDuration = 0;
+        const timerOptions = [0, 3, 5, 10];
+        let timerInterval;
 
         // --- Utility Functions ---
 
@@ -349,9 +391,9 @@
             
             navigator.mediaDevices.getUserMedia({ 
                 video: { 
-                    facingMode: 'environment',
-                    width: { ideal: 1280 },
-                    height: { ideal: 720 }
+                    facingMode: currentFacingMode,
+                    width: { ideal: 1920 },
+                    height: { ideal: 1080 }
                 }, 
                 audio: false
             })
@@ -405,11 +447,11 @@
         }
 
         /**
-         * Captures a photo from the camera stream
+          * The actual photo capture logic.
          */
-        captureBtn.addEventListener('click', () => {
+        function takePicture() {
             if (!stream) {
-                showMessageBox("Kamera Tidak Aktif", "Kamera belum siap. Mohon tunggu atau refresh halaman.");
+                showMessageBox("Kamera Tidak Aktif", "Kamera belum siap.");
                 return;
             }
             
@@ -421,7 +463,7 @@
             const video = cameraView;
             const targetAspectRatio = 16 / 9;
             const canvas = document.createElement('canvas');
-            canvas.width = 1280;
+            canvas.width = 1920;
             canvas.height = canvas.width / targetAspectRatio;
             const ctx = canvas.getContext('2d');
 
@@ -461,7 +503,7 @@
             ctx.fillRect(0, canvas.height - footerHeight, canvas.width, footerHeight);
             
             ctx.fillStyle = 'white';
-            ctx.font = '26px Arial';
+            ctx.font = '30px Arial';
             
             // Left side: Kegiatan (with wrapping)
             ctx.textAlign = 'left';
@@ -491,7 +533,7 @@
             updatePhotoGrid();
             generateReport();
             photoError.classList.add('hidden');
-        });
+        }
 
         /**
          * Updates the photo grid display
@@ -1069,6 +1111,62 @@
         // Refresh location button
         refreshLocationBtn.addEventListener('click', () => {
             getLocation();
+        });
+
+        
+        switchCameraBtn.addEventListener('click', () => {
+            currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
+            startCamera();
+        });
+
+        timerBtn.addEventListener('click', () => {
+            const currentIndex = timerOptions.indexOf(timerDuration);
+            const nextIndex = (currentIndex + 1) % timerOptions.length;
+            timerDuration = timerOptions[nextIndex];
+            timerBtn.innerHTML = timerDuration > 0 ? `${timerDuration}s` : `<i class="fas fa-stopwatch"></i>`;
+        });
+
+        captureBtn.addEventListener('click', () => {
+            if (timerDuration > 0) {
+                let countdown = timerDuration;
+                timerOverlay.textContent = countdown;
+                timerOverlay.classList.add('visible');
+                
+                [captureBtn, switchCameraBtn, timerBtn].forEach(btn => btn.disabled = true);
+
+                timerInterval = setInterval(() => {
+                    countdown--;
+                    timerOverlay.textContent = countdown;
+                    if (countdown <= 0) {
+                        clearInterval(timerInterval);
+                        timerOverlay.classList.remove('visible');
+                        takePicture();
+                        [captureBtn, switchCameraBtn, timerBtn].forEach(btn => btn.disabled = false);
+                    }
+                }, 1000);
+            } else {
+                takePicture();
+            }
+        });
+
+         function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+                fullscreenBtn.innerHTML = '<i class="fas fa-compress"></i>';
+            } else {
+              if (document.exitFullscreen) {
+                document.exitFullscreen();
+                fullscreenBtn.innerHTML = '<i class="fas fa-expand"></i>';
+              }
+            }
+        }
+        
+        fullscreenBtn.addEventListener('click', toggleFullScreen);
+
+        document.addEventListener('fullscreenchange', () => {
+            if (!document.fullscreenElement) {
+                fullscreenBtn.innerHTML = '<i class="fas fa-expand"></i>';
+            }
         });
 
         // Initialize application
