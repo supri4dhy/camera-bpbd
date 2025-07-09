@@ -1,685 +1,1058 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Laporan Kegiatan BPBD KOBAR</title>
-  <!-- Favicon -->
-  <link rel="icon" type="image/png" href="favicon.png">
-  <!-- Tailwind CSS CDN for utility classes -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Font Awesome for icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <style>
-    /* Custom styles for the camera view */
-    #cameraView {
-      width: 100%;
-      background: #000;
-      aspect-ratio: 16/9; /* Maintain a 16:9 aspect ratio for the camera feed */
-      object-fit: cover; /* Ensure the video covers the area without distortion */
-    }
-    
-    /* Style for photo previews in the grid */
-    .photo-preview {
-      height: 80px;
-      object-fit: cover; /* Cover the container, cropping if necessary */
-      background: #f0f0f0;
-      border: 2px solid #ddd;
-      border-radius: 0.5rem; /* Rounded corners for consistency */
-      aspect-ratio: 16/9; /* Enforce 16:9 aspect ratio */
-    }
-    
-    /* A4 container for the print layout preview (hidden) */
-    .a4-container {
-      width: 210mm; /* Standard A4 width */
-      min-height: 297mm; /* Standard A4 height, using min-height to allow content to grow */
-      padding: 10mm; /* Padding around the content */
-      background: white;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.1); /* Soft shadow for visual separation */
-      margin: 10px auto; /* Center the container with some margin */
-      box-sizing: border-box; /* Include padding in the element's total width and height */
-    }
-    
-    /* Style for input validation errors */
-    .input-error {
-      border-color: #f87171; /* Red border for error state */
-      box-shadow: 0 0 0 2px rgba(248, 113, 113, 0.5); /* Soft red glow */
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laporan Kegiatan BPBD KOBAR</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="favicon.png">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+    <style>
+        html, body {
+            height: 100%;
+            overflow: hidden;
+        }
+        body > .container {
+            height: 100%;
+        }
+        #cameraView {
+            width: 100%;
+            background: #000;
+            aspect-ratio: 16/9;
+            object-fit: cover;
+        }
+        
+        .photo-preview {
+            height: 80px;
+            object-fit: cover;
+            border: 2px solid #ddd;
+            border-radius: 0.5rem;
+            aspect-ratio: 16/9;
+        }
+        
+        .a4-container {
+            width: 210mm;
+            min-height: 297mm;
+            padding: 10mm;
+            background: white;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            margin: 10px auto;
+            box-sizing: border-box;
+        }
+        
+        .input-error {
+            border-color: #f87171;
+            box-shadow: 0 0 0 2px rgba(248, 113, 113, 0.5);
+        }
 
-    /* Styles for the custom message box */
-    .message-box-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.6); /* Semi-transparent black overlay */
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 1000; /* Ensure it's on top of other content */
-    }
+        .message-box-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
 
-    .message-box-content {
-      background-color: white;
-      padding: 2rem;
-      border-radius: 0.75rem; /* Rounded corners */
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2); /* Stronger shadow */
-      text-align: center;
-      max-width: 90%;
-      width: 400px; /* Fixed width for the message box */
-      transform: translateY(-20px); /* Slightly moved up for smooth animation */
-      opacity: 0; /* Start hidden */
-      animation: fadeInPop 0.3s forwards; /* Animation for appearing */
-    }
+        .message-box-content {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            max-width: 90%;
+            width: 400px;
+            transform: translateY(-20px);
+            opacity: 0;
+            animation: fadeInPop 0.3s forwards;
+        }
 
-    .message-box-content h3 {
-      font-weight: bold;
-      font-size: 1.25rem; /* Larger font for the title */
-      margin-bottom: 1rem;
-      color: #1f2937; /* Dark gray text */
-    }
-
-    .message-box-content p {
-      margin-bottom: 1.5rem;
-      color: #4b5563; /* Medium gray text */
-    }
-
-    .message-box-content button {
-      background-color: #2563eb; /* Blue button */
-      color: white;
-      padding: 0.75rem 1.5rem;
-      border-radius: 0.5rem;
-      font-weight: 600;
-      transition: background-color 0.2s ease-in-out; /* Smooth transition on hover */
-    }
-
-    .message-box-content button:hover {
-      background-color: #1d4ed8; /* Darker blue on hover */
-    }
-
-    /* Keyframe animation for the message box */
-    @keyframes fadeInPop {
-      from {
-        opacity: 0;
-        transform: translateY(-20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-    .form-step {
-        display: none;
-    }
-    .form-step.active {
-        display: block;
-    }
-  </style>
+        @keyframes fadeInPop {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .form-step {
+            display: none;
+        }
+        .form-step.active {
+            display: block;
+        }
+        
+        #map {
+            height: 250px;
+            width: 100%;
+            border-radius: 0.5rem;
+            margin: 1rem 0;
+            z-index: 1;
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
 </head>
 <body class="bg-gray-100 min-h-screen font-sans">
-  <div class="container mx-auto p-4 max-w-md">
-    <!-- Header Section -->
-    <header class="text-center mb-6 flex flex-col items-center justify-center">
-        <img src="logo.png" alt="Logo BPBD" class="h-20 w-20 mb-4" onerror="this.style.display='none'">
-        <div>
-            <h1 class="text-3xl font-extrabold text-blue-800 mb-2">LAPORAN KEGIATAN</h1>
-            <p class="text-lg text-gray-600">BPBD Kabupaten Kotawaringin Barat</p>
-        </div>
-    </header>
-
-    <!-- Step Indicator -->
-    <div class="flex justify-between mb-4 text-sm text-gray-500">
-        <span id="step-indicator-1" class="font-bold text-blue-600">1. Data Petugas</span>
-        <span id="step-indicator-2">2. Detail Kegiatan</span>
-        <span id="step-indicator-3">3. Ambil Foto</span>
-    </div>
-
-    <div id="form-container">
-        <!-- Step 1: Petugas Info -->
-        <div id="step-1" class="form-step active bg-white rounded-xl shadow-lg p-6">
-            <h3 class="text-xl font-semibold mb-4 text-center">Langkah 1: Data Petugas</h3>
-            <div class="mb-4">
-                <label for="namaPetugas" class="block text-gray-700 font-semibold mb-1">Nama Petugas:</label>
-                <input type="text" id="namaPetugas" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-200" placeholder="Nama petugas" required>
-            </div>
-            <div class="mb-4">
-                <label for="jabatan" class="block text-gray-700 font-semibold mb-1">Jabatan (opsional):</label>
-                <input type="text" id="jabatan" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-200" placeholder="Jabatan">
-            </div>
-        </div>
-
-        <!-- Step 2: Kegiatan Info -->
-        <div id="step-2" class="form-step bg-white rounded-xl shadow-lg p-6">
-            <h3 class="text-xl font-semibold mb-4 text-center">Langkah 2: Detail Kegiatan</h3>
-            <div class="mb-4">
-                <label for="judulKegiatan" class="block text-gray-700 font-semibold mb-1">Judul Kegiatan:</label>
-                <textarea id="judulKegiatan" rows="2" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-200" placeholder="Judul kegiatan" required></textarea>
-            </div>
-            <div class="grid grid-cols-2 gap-4 mb-4">
-                <div>
-                  <label for="tanggal" class="block text-gray-700 font-semibold mb-1">Tanggal:</label>
-                  <input type="text" id="tanggal" class="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 cursor-not-allowed" readonly>
-                </div>
-                <div>
-                  <label for="jam" class="block text-gray-700 font-semibold mb-1">Jam:</label>
-                  <input type="text" id="jam" class="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 cursor-not-allowed" readonly>
-                </div>
-            </div>
+    <div class="container mx-auto p-4 max-w-md flex flex-col">
+        <!-- Header Section -->
+        <header class="text-center mb-6 flex-shrink-0">
+            <img src="logo.png" alt="Logo BPBD" class="h-20 w-20 mb-4 rounded-full mx-auto" onerror="this.src='https://placehold.co/80x80/000000/FFFFFF?text=LOGO';">
             <div>
-                <label for="lokasi" class="block text-gray-700 font-semibold mb-1">Lokasi:</label>
-                <input type="text" id="lokasi" class="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 cursor-not-allowed" placeholder="Mendeteksi GPS..." readonly>
+                <h1 class="text-3xl font-extrabold text-blue-800 mb-2">LAPORAN KEGIATAN</h1>
+                <p class="text-lg text-gray-600">BPBD Kabupaten Kotawaringin Barat</p>
+            </div>
+        </header>
+
+        <!-- Step Indicator -->
+        <div class="flex justify-between mb-4 text-sm text-gray-500 flex-shrink-0">
+            <span id="step-indicator-1" class="font-bold text-blue-600">1. Informasi Dasar</span>
+            <span id="step-indicator-2">2. Lokasi & Waktu</span>
+            <span id="step-indicator-3">3. Dokumentasi Foto</span>
+        </div>
+
+        <div class="relative flex-grow overflow-y-auto">
+            <div id="form-container">
+                <!-- Step 1: Petugas Info -->
+                <div id="step-1" class="form-step active bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-xl font-semibold mb-4 text-center">Langkah 1: Informasi Dasar</h3>
+                    <div class="mb-4">
+                        <label for="namaPetugas" class="block text-gray-700 font-semibold mb-1">Nama Petugas: <span class="text-red-500">*</span></label>
+                        <input type="text" id="namaPetugas" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-200" placeholder="Nama petugas" required>
+                        <p class="text-red-500 text-sm mt-1 hidden" id="namaPetugasError">Nama petugas wajib diisi</p>
+                    </div>
+                    <div class="mb-4">
+                        <label for="jabatan" class="block text-gray-700 font-semibold mb-1">Jabatan (opsional):</label>
+                        <input type="text" id="jabatan" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-200" placeholder="Jabatan">
+                    </div>
+                    <div class="mb-4">
+                        <label for="judulKegiatan" class="block text-gray-700 font-semibold mb-1">Judul Kegiatan: <span class="text-red-500">*</span></label>
+                        <textarea id="judulKegiatan" rows="2" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-200" placeholder="Judul kegiatan" required></textarea>
+                        <p class="text-red-500 text-sm mt-1 hidden" id="judulKegiatanError">Judul kegiatan wajib diisi</p>
+                    </div>
+                </div>
+
+                <!-- Step 2: Kegiatan Info -->
+                <div id="step-2" class="form-step bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-xl font-semibold mb-4 text-center">Langkah 2: Lokasi & Waktu</h3>
+                    
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label for="tanggal" class="block text-gray-700 font-semibold mb-1">Tanggal:</label>
+                            <input type="text" id="tanggal" class="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 cursor-not-allowed" readonly>
+                        </div>
+                        <div>
+                            <label for="jam" class="block text-gray-700 font-semibold mb-1">Jam:</label>
+                            <input type="text" id="jam" class="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 cursor-not-allowed" readonly>
+                        </div>
+                    </div>
+                    <div>
+                        <label for="lokasi" class="block text-gray-700 font-semibold mb-1">Lokasi: <span class="text-red-500">*</span></label>
+                        <input type="text" id="lokasi" class="w-full p-3 border border-gray-300 rounded-lg bg-gray-50" placeholder="Mendeteksi GPS..." readonly>
+                        <p class="text-red-500 text-sm mt-1 hidden" id="lokasiError">Lokasi belum terdeteksi</p>
+                        <button id="refreshLocationBtn" class="mt-2 text-blue-600 text-sm font-medium flex items-center">
+                            <i class="fas fa-sync-alt mr-1"></i> Muat Ulang Lokasi
+                        </button>
+                    </div>
+                    <!-- Map container -->
+                    <div id="map"></div>
+                </div>
+
+                <!-- Step 3: Camera -->
+                <div id="step-3" class="form-step bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-xl font-semibold mb-4 text-center">Langkah 3: Dokumentasi Foto</h3>
+                    <label class="block text-gray-700 font-semibold mb-3">Ambil Foto (Maksimal 3):</label>
+                    <div class="relative bg-gray-200 rounded-lg overflow-hidden">
+                        <video id="cameraView" autoplay playsinline muted class="w-full rounded-lg mb-2"></video>
+                        <button id="captureBtn" class="absolute bottom-4 right-4 bg-blue-600 text-white p-4 rounded-full shadow-xl hover:bg-blue-700 transition duration-200 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-300">
+                            <i class="fas fa-camera text-2xl"></i>
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-3 gap-3 mt-4" id="photoGrid">
+                        <!-- Captured photos will be displayed here -->
+                    </div>
+                    <p class="text-red-500 text-sm mt-2 hidden" id="photoError">Minimal 1 foto diperlukan</p>
+                </div>
             </div>
         </div>
 
-        <!-- Step 3: Camera -->
-        <div id="step-3" class="form-step bg-white rounded-xl shadow-lg p-6">
-            <h3 class="text-xl font-semibold mb-4 text-center">Langkah 3: Ambil Foto</h3>
-            <label class="block text-gray-700 font-semibold mb-3">Ambil Foto (Maksimal 3):</label>
-            <div class="relative bg-gray-200 rounded-lg overflow-hidden">
-                <video id="cameraView" autoplay playsinline muted class="w-full rounded-lg mb-2"></video>
-                <button id="captureBtn" class="absolute bottom-4 right-4 bg-blue-600 text-white p-4 rounded-full shadow-xl hover:bg-blue-700 transition duration-200 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-300">
-                <i class="fas fa-camera text-2xl"></i>
+        <!-- Navigation & Action Buttons -->
+        <div id="navigation-container" class="mt-auto pt-4 flex-shrink-0">
+             <div id="step-navigation" class="flex justify-between items-center">
+                <button id="prevBtn" class="bg-gradient-to-r from-gray-500 to-gray-600 text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center transform hover:scale-110 transition-all duration-300 ease-in-out">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <div id="action-buttons" class="grid grid-cols-2 gap-4 hidden w-full px-4">
+                    <button id="savePdfBtn" class="bg-gradient-to-r from-blue-600 to-blue-800 text-white py-3 rounded-lg shadow-lg hover:shadow-xl font-semibold text-lg transform hover:-translate-y-1 transition-all duration-300 ease-in-out">
+                        <i class="fas fa-file-pdf mr-2"></i> Simpan PDF
+                    </button>
+                    <button id="downloadBtn" class="bg-gradient-to-r from-green-500 to-green-700 text-white py-3 rounded-lg shadow-lg hover:shadow-xl font-semibold text-lg transform hover:-translate-y-1 transition-all duration-300 ease-in-out">
+                        <i class="fas fa-download mr-2"></i> Simpan PNG
+                    </button>
+                </div>
+                <button id="nextBtn" class="bg-gradient-to-r from-blue-500 to-blue-700 text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center transform hover:scale-110 transition-all duration-300 ease-in-out">
+                    <i class="fas fa-chevron-right"></i>
                 </button>
             </div>
-            <div class="grid grid-cols-3 gap-3 mt-4" id="photoGrid">
-                <!-- Captured photos will be displayed here -->
-            </div>
         </div>
+
+        <!-- Report Preview (Hidden by default, used for PDF/PNG generation) -->
+        <div id="reportPreview" class="hidden"></div>
     </div>
 
-    <!-- Navigation & Action Buttons -->
-    <div id="navigation-container" class="mt-6">
-        <div class="flex justify-between">
-            <button id="prevBtn" class="bg-gray-500 hover:bg-gray-600 text-white py-3 px-6 rounded-lg shadow-md font-semibold text-lg transition duration-200 transform hover:scale-105">
-                <i class="fas fa-arrow-left mr-2"></i> Kembali
-            </button>
-            <button id="nextBtn" class="bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-lg shadow-md font-semibold text-lg transition duration-200 transform hover:scale-105">
-                Lanjut <i class="fas fa-arrow-right ml-2"></i>
-            </button>
-        </div>
-        <div id="action-buttons" class="grid grid-cols-2 gap-4 mt-4 hidden">
-            <button id="savePdfBtn" class="bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg shadow-md font-semibold text-lg transition duration-200 transform hover:scale-105">
-                <i class="fas fa-file-pdf mr-2"></i> Simpan PDF
-            </button>
-            <button id="downloadBtn" class="bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg shadow-md font-semibold text-lg transition duration-200 transform hover:scale-105">
-                <i class="fas fa-download mr-2"></i> Simpan PNG
+    <!-- Custom Message Box -->
+    <div id="messageBoxOverlay" class="message-box-overlay hidden">
+        <div class="message-box-content">
+            <h3 id="messageBoxTitle">Pesan</h3>
+            <p id="messageBoxText">Ini adalah pesan default.</p>
+            <button id="messageBoxCloseBtn" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-6 rounded-lg font-medium">
+                <span id="messageBoxButtonText">OK</span>
+                <span id="messageBoxSpinner" class="loading-spinner hidden ml-2"></span>
             </button>
         </div>
     </div>
 
+    <!-- Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 
-    <!-- Report Preview (Hidden by default, used for PDF/PNG generation) -->
-    <div id="reportPreview" class="hidden"></div>
-  </div>
+    <!-- Main Application Script -->
+    <script>
+        // --- DOM Element References ---
+        const cameraView = document.getElementById('cameraView');
+        const captureBtn = document.getElementById('captureBtn');
+        const photoGrid = document.getElementById('photoGrid');
+        const namaPetugas = document.getElementById('namaPetugas');
+        const jabatan = document.getElementById('jabatan');
+        const judulKegiatan = document.getElementById('judulKegiatan');
+        const tanggalInput = document.getElementById('tanggal');
+        const jamInput = document.getElementById('jam');
+        const lokasiInput = document.getElementById('lokasi');
+        const savePdfBtn = document.getElementById('savePdfBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const reportPreview = document.getElementById('reportPreview');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const actionButtons = document.getElementById('action-buttons');
+        const mapContainer = document.getElementById('map');
+        const refreshLocationBtn = document.getElementById('refreshLocationBtn');
+        const stepNavigation = document.getElementById('step-navigation');
+        const navigationContainer = document.getElementById('navigation-container');
 
-  <!-- Custom Message Box HTML -->
-  <div id="messageBoxOverlay" class="message-box-overlay hidden">
-    <div class="message-box-content">
-      <h3 id="messageBoxTitle">Pesan</h3>
-      <p id="messageBoxText">Ini adalah pesan default.</p>
-      <button id="messageBoxCloseBtn">OK</button>
-    </div>
-  </div>
+        // Error message elements
+        const namaPetugasError = document.getElementById('namaPetugasError');
+        const judulKegiatanError = document.getElementById('judulKegiatanError');
+        const lokasiError = document.getElementById('lokasiError');
+        const photoError = document.getElementById('photoError');
 
-  <!-- jsPDF and HTML2Canvas libraries for generating PDF/PNG -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+        // Message box elements
+        const messageBoxOverlay = document.getElementById('messageBoxOverlay');
+        const messageBoxTitle = document.getElementById('messageBoxTitle');
+        const messageBoxText = document.getElementById('messageBoxText');
+        const messageBoxCloseBtn = document.getElementById('messageBoxCloseBtn');
+        const messageBoxButtonText = document.getElementById('messageBoxButtonText');
+        const messageBoxSpinner = document.getElementById('messageBoxSpinner');
 
-  <!-- Main Application Script -->
-  <script>
-    // --- DOM Element References ---
-    const cameraView = document.getElementById('cameraView');
-    const captureBtn = document.getElementById('captureBtn');
-    const photoGrid = document.getElementById('photoGrid');
-    const namaPetugas = document.getElementById('namaPetugas');
-    const jabatan = document.getElementById('jabatan');
-    const judulKegiatan = document.getElementById('judulKegiatan');
-    const tanggalInput = document.getElementById('tanggal');
-    const jamInput = document.getElementById('jam');
-    const lokasiInput = document.getElementById('lokasi');
-    const savePdfBtn = document.getElementById('savePdfBtn');
-    const downloadBtn = document.getElementById('downloadBtn');
-    const reportPreview = document.getElementById('reportPreview');
-    const prevBtn = document.getElementById('prevBtn');
-    const nextBtn = document.getElementById('nextBtn');
-    const actionButtons = document.getElementById('action-buttons');
+        // --- Application State Variables ---
+        let photos = [];
+        let stream = null;
+        const { jsPDF } = window.jspdf;
+        let currentStep = 1;
+        const totalSteps = 3;
+        const logoImage = new Image();
+        logoImage.src = 'logo.png';
+        logoImage.crossOrigin = 'Anonymous';
 
-    // Message box elements
-    const messageBoxOverlay = document.getElementById('messageBoxOverlay');
-    const messageBoxTitle = document.getElementById('messageBoxTitle');
-    const messageBoxText = document.getElementById('messageBoxText');
-    const messageBoxCloseBtn = document.getElementById('messageBoxCloseBtn');
+        let map = null;
+        let locationMarker = null;
+        let currentPosition = null;
 
-    // --- Application State Variables ---
-    let photos = []; // Stores data URLs of captured photos
-    let stream = null; // Stores the camera media stream
-    const { jsPDF } = window.jspdf; // Make jsPDF available
-    let currentStep = 1;
-    const totalSteps = 3;
-    const logoImage = new Image();
-    logoImage.src = 'logo.png'; 
-    logoImage.crossOrigin = 'Anonymous';
+        // --- Utility Functions ---
 
-    // --- Utility Functions ---
-
-    /**
-     * Displays a custom message box instead of the native alert().
-     * @param {string} title - The title of the message box.
-     * @param {string} message - The message to be displayed.
-     */
-    function showMessageBox(title, message) {
-      messageBoxTitle.textContent = title;
-      messageBoxText.textContent = message;
-      messageBoxOverlay.classList.remove('hidden');
-    }
-
-    // Event listener to close the message box
-    messageBoxCloseBtn.addEventListener('click', () => {
-      messageBoxOverlay.classList.add('hidden');
-    });
-
-    /**
-     * Initializes and starts the camera stream.
-     */
-    function startCamera() {
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        showMessageBox("Kamera Tidak Didukung", "Browser Anda tidak mendukung akses kamera.");
-        return;
-      }
-      navigator.mediaDevices.getUserMedia({ 
-        video: { 
-          facingMode: 'environment',
-          width: { ideal: 1280 },
-          height: { ideal: 720 }
-        }, 
-        audio: false
-      })
-      .then(s => {
-        stream = s;
-        cameraView.srcObject = s;
-      })
-      .catch(err => {
-        showMessageBox("Kesalahan Kamera", `Tidak dapat mengakses kamera. Pastikan Anda memberikan izin. Error: ${err.name}`);
-        console.error("Error accessing camera:", err);
-      });
-    }
-
-    /**
-     * Captures a photo from the active camera stream and adds a logo stamp.
-     */
-    captureBtn.addEventListener('click', () => {
-      if (!stream) {
-        showMessageBox("Kamera Tidak Aktif", "Kamera belum siap. Mohon tunggu atau refresh halaman.");
-        return;
-      }
-      if (photos.length >= 3) {
-        showMessageBox("Batas Foto Tercapai", "Anda hanya dapat mengambil maksimal 3 foto.");
-        return;
-      }
-
-      const video = cameraView;
-      const targetAspectRatio = 16 / 9;
-
-      const canvas = document.createElement('canvas');
-      canvas.width = 1280;
-      canvas.height = canvas.width / targetAspectRatio;
-
-      const ctx = canvas.getContext('2d');
-
-      const videoWidth = video.videoWidth;
-      const videoHeight = video.videoHeight;
-      const videoAspectRatio = videoWidth / videoHeight;
-
-      let sx, sy, sWidth, sHeight;
-
-      if (videoAspectRatio > targetAspectRatio) {
-        sHeight = videoHeight;
-        sWidth = sHeight * targetAspectRatio;
-        sx = (videoWidth - sWidth) / 2;
-        sy = 0;
-      } else {
-        sWidth = videoWidth;
-        sHeight = sWidth / targetAspectRatio;
-        sx = 0;
-        sy = (videoHeight - sHeight) / 2;
-      }
-
-      // Draw the cropped video frame onto the canvas
-      ctx.drawImage(video, sx, sy, sWidth, sHeight, 0, 0, canvas.width, canvas.height);
-
-      // --- Add Logo Stamp ---
-      try {
-        const logoSize = canvas.width * 0.1; // Logo size is 10% of canvas width
-        const margin = 15;
-        ctx.drawImage(logoImage, canvas.width - logoSize - margin, margin, logoSize, logoSize);
-      } catch (e) {
-          console.error("Error drawing logo stamp:", e);
-      }
-      // --- End Logo Stamp ---
-      
-      photos.push(canvas.toDataURL('image/jpeg', 0.9));
-      updatePhotoGrid();
-      generateReport();
-    });
-
-    /**
-     * Updates the photo grid display with the current captured photos.
-     */
-    function updatePhotoGrid() {
-      photoGrid.innerHTML = ''; // Clear current photos
-      photos.forEach((photo, index) => {
-        const div = document.createElement('div');
-        div.className = 'relative group';
-        div.innerHTML = `
-          <img src="${photo}" class="photo-preview w-full rounded-lg shadow-sm transition-transform duration-200 group-hover:scale-105">
-          <button onclick="deletePhoto(${index})" class="absolute top-0 right-0 bg-red-500 text-white rounded-full w-7 h-7 flex items-center justify-center transform translate-x-1/3 -translate-y-1/3 opacity-0 group-hover:opacity-100 transition-opacity duration-200 focus:outline-none focus:ring-2 focus:ring-red-400">
-            <i class="fas fa-times text-xs"></i>
-          </button>
-        `;
-        photoGrid.appendChild(div);
-      });
-    }
-
-    /**
-     * Deletes a photo from the photos array by its index.
-     * @param {number} index - The index of the photo to delete.
-     */
-    window.deletePhoto = (index) => {
-      photos.splice(index, 1);
-      updatePhotoGrid();
-      generateReport();
-    };
-
-    /**
-     * Fetches the current GPS location using the Geolocation API.
-     */
-    function getLocation() {
-      if (navigator.geolocation) {
-        lokasiInput.value = "Mencari lokasi...";
-        navigator.geolocation.getCurrentPosition(
-          position => {
-            const { latitude, longitude } = position.coords;
-            lokasiInput.value = `Lat: ${latitude.toFixed(6)}, Long: ${longitude.toFixed(6)}`;
-            generateReport();
-          },
-          error => {
-            let errorMessage = "Gagal mendapatkan lokasi.";
-            switch(error.code) {
-              case error.PERMISSION_DENIED: errorMessage = "Izin lokasi ditolak."; break;
-              case error.POSITION_UNAVAILABLE: errorMessage = "Informasi lokasi tidak tersedia."; break;
-              case error.TIMEOUT: errorMessage = "Waktu habis saat mencari lokasi."; break;
-            }
-            lokasiInput.value = errorMessage;
-            showMessageBox("Kesalahan Lokasi", errorMessage);
-            generateReport();
-          },
-          { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-        );
-      } else {
-        lokasiInput.value = "Browser tidak mendukung GPS";
-        showMessageBox("Browser Tidak Didukung", "Browser Anda tidak mendukung Geolocation API.");
-      }
-    }
-
-    /**
-     * Updates the date and time input fields with the current local date and time.
-     */
-    function updateDateTime() {
-      const now = new Date();
-      const optionsDate = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-      tanggalInput.value = now.toLocaleDateString('id-ID', optionsDate);
-      
-      const jam = now.getHours().toString().padStart(2, '0');
-      const menit = now.getMinutes().toString().padStart(2, '0');
-      jamInput.value = `${jam}.${menit} WIB`;
-      
-      generateReport();
-    }
-
-    /**
-     * Generates the HTML content for the report preview based on form inputs and photos.
-     */
-    function generateReport() {
-      let reportHTML = `
-        <div class="a4-container">
-            <div style="display: flex; align-items: center; border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 20px;">
-                <img src="logo.png" style="width: 80px; height: 80px; margin-right: 20px;" crossorigin="anonymous" onerror="this.style.display='none'"/>
-                <div style="text-align: center; flex-grow: 1;">
-                    <h1 style="font-size: 22px; font-weight: bold; margin: 0;">LAPORAN KEGIATAN</h1>
-                    <p style="font-size: 16px; margin: 0;">BADAN PENANGGULANGAN BENCANA DAERAH</p>
-                    <p style="font-size: 14px; margin: 0;">KABUPATEN KOTAWARINGIN BARAT</p>
-                </div>
-            </div>
+        /**
+         * Shows a custom message box with optional loading state and callback
+         * @param {string} title - Title of the message
+         * @param {string} message - Message content
+         * @param {object} options - Additional options { loading: boolean, buttonText: string }
+         * @param {function} callback - Function to execute when the box is closed
+         */
+        function showMessageBox(title, message, options = {}, callback = null) {
+            messageBoxTitle.textContent = title;
+            messageBoxText.textContent = message;
             
-            <!-- Group 1: Data -->
-            <h2 style="font-size: 16px; font-weight: bold; margin-bottom: 10px;">I. DETAIL KEGIATAN</h2>
-            <table style="width: 100%; border-collapse: collapse; font-size: 14px; line-height: 1.6;">
-                <tbody>
-                    <tr>
-                        <td style="width: 150px; padding: 2px 0;">Nama Petugas</td>
-                        <td style="width: 10px;">:</td>
-                        <td style="font-weight: bold;">${namaPetugas.value || '-'}</td>
-                    </tr>
-                    ${jabatan.value ? `
-                    <tr>
-                        <td style="padding: 2px 0;">Jabatan</td>
-                        <td>:</td>
-                        <td style="font-weight: bold;">${jabatan.value}</td>
-                    </tr>` : ''}
-                    <tr>
-                        <td style="padding: 2px 0; vertical-align: top;">Judul Kegiatan</td>
-                        <td style="vertical-align: top;">:</td>
-                        <td style="font-weight: bold; white-space: pre-wrap; vertical-align: top;">${judulKegiatan.value || '-'}</td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 2px 0;">Waktu</td>
-                        <td>:</td>
-                        <td style="font-weight: bold;">${tanggalInput.value}, Pukul ${jamInput.value}</td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 2px 0; vertical-align: top;">Lokasi</td>
-                        <td style="vertical-align: top;">:</td>
-                        <td style="font-weight: bold; vertical-align: top;">${lokasiInput.value || '-'}</td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <hr style="margin: 20px 0; border-top: 1px solid #ccc;">
-
-            <!-- Group 2: Photos -->
-            <h2 style="font-size: 16px; font-weight: bold; margin-bottom: 15px; text-align: center;">II. DOKUMENTASI FOTO</h2>
-            <div style="display: grid; grid-template-columns: 1fr; gap: 10px; text-align: center; margin-bottom: 20px;">
-      `;
-
-      // Dynamic photo sizing based on count
-      let photoWidth = '90%';
-      if (photos.length === 2) {
-        photoWidth = '75%';
-      } else if (photos.length === 3) {
-        photoWidth = '55%';
-      }
-
-      if (photos.length > 0) {
-        photos.forEach(photo => {
-          reportHTML += `
-            <div>
-              <img src="${photo}" style="width: ${photoWidth}; height: auto; border: 1px solid #ddd; padding: 4px; border-radius: 4px; margin: 0 auto; aspect-ratio: 16/9; object-fit: cover;">
-            </div>
-          `;
-        });
-      } else {
-        reportHTML += `<p style="color: #888; text-align: center; padding: 40px 0;">[Foto belum diambil]</p>`;
-      }
-
-      reportHTML += `
-            </div>
-        </div>
-      `;
-      reportPreview.innerHTML = reportHTML;
-    }
-
-    /**
-     * Pre-loads all images within an element to ensure they are rendered before canvas capture.
-     * @param {HTMLElement} element - The container element with images to load.
-     * @returns {Promise} - A promise that resolves when all images are loaded.
-     */
-    function waitForImages(element) {
-        const promises = [];
-        element.querySelectorAll('img').forEach(img => {
-            if (img.complete) return;
-            promises.push(new Promise(resolve => {
-                img.onload = resolve;
-                img.onerror = () => {
-                    console.error(`Gagal memuat gambar: ${img.src}`);
-                    resolve(); // Tetap resolve agar tidak memblokir proses
-                };
-            }));
-        });
-        return Promise.all(promises);
-    }
-
-    /**
-     * Generates and saves the report as a PDF file.
-     */
-    function generateAndSave(format) {
-      if (!validateInputs(true)) return;
-
-      const reportElement = reportPreview.querySelector('.a4-container');
-      if (!reportElement) return;
-      
-      const action = format === 'pdf' ? 'Membuat PDF' : 'Membuat PNG';
-      showMessageBox(action, "Harap tunggu, laporan Anda sedang dibuat...");
-
-      // Temporarily make the report visible but off-screen for rendering
-      reportPreview.classList.remove('hidden');
-      reportPreview.style.position = 'absolute';
-      reportPreview.style.left = '-9999px';
-      reportPreview.style.top = '-9999px';
-
-      waitForImages(reportElement).then(() => {
-          html2canvas(reportElement, {
-            scale: 2,
-            useCORS: true,
-            logging: false,
-            windowWidth: reportElement.scrollWidth,
-            windowHeight: reportElement.scrollHeight,
-            scrollY: -window.scrollY
-          }).then(canvas => {
-            // Sanitize inputs for filename
-            const sanitize = (str) => str.replace(/[^a-zA-Z0-9_.-]/g, '_').substring(0, 30);
-            const petugas = sanitize(namaPetugas.value.trim());
-            const kegiatan = sanitize(judulKegiatan.value.trim());
-            const tgl = new Date();
-            const dateString = `${String(tgl.getDate()).padStart(2, '0')}-${String(tgl.getMonth() + 1).padStart(2, '0')}-${tgl.getFullYear()}`;
-            const fileName = `${petugas}_${kegiatan}_${dateString}`;
-
-            if (format === 'pdf') {
-                const imgData = canvas.toDataURL('image/jpeg', 0.9);
-                const pdf = new jsPDF({
-                    orientation: 'portrait',
-                    unit: 'mm',
-                    format: 'a4'
-                });
-                const pdfWidth = pdf.internal.pageSize.getWidth();
-                const imgHeightInPDF = pdfWidth / (canvas.width / canvas.height);
-                pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, imgHeightInPDF);
-                pdf.save(`${fileName}.pdf`);
+            if (options.loading) {
+                messageBoxButtonText.textContent = options.buttonText || 'Memproses...';
+                messageBoxSpinner.classList.remove('hidden');
+                messageBoxCloseBtn.disabled = true;
             } else {
-                const link = document.createElement('a');
-                link.download = `${fileName}.png`;
-                link.href = canvas.toDataURL('image/png');
-                link.click();
+                messageBoxButtonText.textContent = options.buttonText || 'OK';
+                messageBoxSpinner.classList.add('hidden');
+                messageBoxCloseBtn.disabled = false;
             }
-            messageBoxOverlay.classList.add('hidden');
-          }).catch(error => {
-            showMessageBox(`Kesalahan ${format.toUpperCase()}`, `Gagal membuat file ${format.toUpperCase()}. Silakan coba lagi.`);
-            console.error(`Error generating ${format}:`, error);
-          }).finally(() => {
-            // Always hide the preview element again
-            reportPreview.classList.add('hidden');
-            reportPreview.style.position = '';
-            reportPreview.style.left = '';
-            reportPreview.style.top = '';
-          });
-      });
-    }
+            
+            messageBoxOverlay.classList.remove('hidden');
 
-    savePdfBtn.addEventListener('click', () => generateAndSave('pdf'));
-    downloadBtn.addEventListener('click', () => generateAndSave('png'));
-
-
-    /**
-     * Validates required input fields for the current step or all steps.
-     * @param {boolean} finalCheck - If true, validates all inputs. Otherwise, validates current step.
-     * @returns {boolean} - True if all inputs are valid, otherwise false.
-     */
-    function validateInputs(finalCheck = false) {
-        if (currentStep === 1 || finalCheck) {
-            if (namaPetugas.value.trim() === '') {
-                showMessageBox("Validasi Gagal", "Harap isi Nama Petugas.");
-                namaPetugas.classList.add('input-error');
-                return false;
-            }
-            namaPetugas.classList.remove('input-error');
+            // Handle the close action and callback
+            messageBoxCloseBtn.onclick = () => {
+                messageBoxOverlay.classList.add('hidden');
+                if (callback) {
+                    callback();
+                }
+                // Reset onclick to default behavior to prevent accidental re-triggering
+                messageBoxCloseBtn.onclick = () => messageBoxOverlay.classList.add('hidden');
+            };
         }
-        if (currentStep === 2 || finalCheck) {
-            if (judulKegiatan.value.trim() === '') {
-                showMessageBox("Validasi Gagal", "Harap isi Judul Kegiatan.");
-                judulKegiatan.classList.add('input-error');
-                return false;
-            }
-            judulKegiatan.classList.remove('input-error');
-        }
-        if (finalCheck) {
-            if (photos.length === 0) {
-                showMessageBox("Validasi Gagal", "Ambil minimal 1 foto kegiatan.");
-                return false;
-            }
-        }
-        return true;
-    }
 
-    function updateStepUI() {
-        document.querySelectorAll('.form-step').forEach(step => step.classList.remove('active'));
-        document.getElementById(`step-${currentStep}`).classList.add('active');
+        /**
+         * Initializes and starts the camera stream
+         */
+        function startCamera() {
+            if (!navigator.mediaDevices?.getUserMedia) {
+                showMessageBox("Kamera Tidak Didukung", "Browser Anda tidak mendukung akses kamera.");
+                return;
+            }
+            
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
+            
+            navigator.mediaDevices.getUserMedia({ 
+                video: { 
+                    facingMode: 'environment',
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 }
+                }, 
+                audio: false
+            })
+            .then(s => {
+                stream = s;
+                cameraView.srcObject = s;
+            })
+            .catch(err => {
+                let errorMessage = "Tidak dapat mengakses kamera.";
+                if (err.name === 'NotAllowedError') {
+                    errorMessage = "Izin kamera ditolak. Silakan berikan izin untuk mengakses kamera.";
+                } else if (err.name === 'NotFoundError') {
+                    errorMessage = "Tidak ada kamera yang ditemukan.";
+                }
+                
+                showMessageBox("Kesalahan Kamera", errorMessage);
+                console.error("Camera error:", err);
+            });
+        }
 
-        document.querySelectorAll('[id^="step-indicator-"]').forEach(ind => {
-            ind.classList.remove('font-bold', 'text-blue-600');
+        /**
+         * Wraps text to fit a max width on a canvas.
+         */
+        function wrapText(context, text, x, y, maxWidth, lineHeight) {
+            let words = text.split(' ');
+            let line = '';
+            let lines = [];
+
+            for (let n = 0; n < words.length; n++) {
+                let testLine = line + words[n] + ' ';
+                let metrics = context.measureText(testLine);
+                let testWidth = metrics.width;
+                if (testWidth > maxWidth && n > 0) {
+                    lines.push(line);
+                    line = words[n] + ' ';
+                } else {
+                    line = testLine;
+                }
+            }
+            lines.push(line);
+            
+            if (lines.length > 2) {
+                let lastLine = lines[1];
+                lastLine = lastLine.slice(0, -4) + '...';
+                lines = [lines[0], lastLine];
+            }
+
+            for (let i = 0; i < lines.length; i++) {
+                context.fillText(lines[i].trim(), x, y + (i * lineHeight));
+            }
+        }
+
+        /**
+         * Captures a photo from the camera stream
+         */
+        captureBtn.addEventListener('click', () => {
+            if (!stream) {
+                showMessageBox("Kamera Tidak Aktif", "Kamera belum siap. Mohon tunggu atau refresh halaman.");
+                return;
+            }
+            
+            if (photos.length >= 3) {
+                showMessageBox("Batas Foto Tercapai", "Anda hanya dapat mengambil maksimal 3 foto.");
+                return;
+            }
+
+            const video = cameraView;
+            const targetAspectRatio = 16 / 9;
+            const canvas = document.createElement('canvas');
+            canvas.width = 1280;
+            canvas.height = canvas.width / targetAspectRatio;
+            const ctx = canvas.getContext('2d');
+
+            const videoWidth = video.videoWidth;
+            const videoHeight = video.videoHeight;
+            const videoAspectRatio = videoWidth / videoHeight;
+
+            let sx, sy, sWidth, sHeight;
+
+            if (videoAspectRatio > targetAspectRatio) {
+                sHeight = videoHeight;
+                sWidth = sHeight * targetAspectRatio;
+                sx = (videoWidth - sWidth) / 2;
+                sy = 0;
+            } else {
+                sWidth = videoWidth;
+                sHeight = sWidth / targetAspectRatio;
+                sx = 0;
+                sy = (videoHeight - sHeight) / 2;
+            }
+
+            ctx.drawImage(video, sx, sy, sWidth, sHeight, 0, 0, canvas.width, canvas.height);
+
+            try {
+                const logoSize = canvas.width * 0.1;
+                const margin = 15;
+                ctx.drawImage(logoImage, canvas.width - logoSize - margin, margin, logoSize, logoSize);
+            } catch (e) {
+                console.error("Error drawing logo:", e);
+            }
+            
+            // Add custom footer with details
+            const footerHeight = 70;
+            const padding = 20;
+            const lineHeight = 22;
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+            ctx.fillRect(0, canvas.height - footerHeight, canvas.width, footerHeight);
+            
+            ctx.fillStyle = 'white';
+            ctx.font = '20px Arial';
+            
+            // Left side: Kegiatan (with wrapping)
+            ctx.textAlign = 'left';
+            const kegiatanText = `Kegiatan: ${judulKegiatan.value || 'Tidak ada judul'}`;
+            const leftX = padding;
+            const leftY = canvas.height - footerHeight + lineHeight + 5;
+            const leftMaxWidth = canvas.width / 1.2;
+            wrapText(ctx, kegiatanText, leftX, leftY, leftMaxWidth, lineHeight);
+
+            // Right side: Time and Coordinates
+            ctx.textAlign = 'right';
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+            let coords = 'Lokasi tidak ditemukan';
+            if (currentPosition) {
+                coords = `${currentPosition.latitude.toFixed(5)}, ${currentPosition.longitude.toFixed(5)}`;
+            }
+            const rightX = canvas.width - padding;
+            const rightY1 = canvas.height - footerHeight + lineHeight + 5;
+            const rightY2 = rightY1 + lineHeight;
+
+            ctx.fillText(`${dateStr} ${timeStr}`, rightX, rightY1);
+            ctx.fillText(coords, rightX, rightY2);
+            
+            photos.push(canvas.toDataURL('image/jpeg', 0.9));
+            updatePhotoGrid();
+            generateReport();
+            photoError.classList.add('hidden');
         });
-        document.getElementById(`step-indicator-${currentStep}`).classList.add('font-bold', 'text-blue-600');
 
-        prevBtn.style.display = currentStep === 1 ? 'none' : 'inline-flex';
-        nextBtn.style.display = currentStep === totalSteps ? 'none' : 'inline-flex';
-        actionButtons.classList.toggle('hidden', currentStep !== totalSteps);
-    }
-
-    nextBtn.addEventListener('click', () => {
-        if (!validateInputs()) return;
-        if (currentStep < totalSteps) {
-            currentStep++;
-            updateStepUI();
+        /**
+         * Updates the photo grid display
+         */
+        function updatePhotoGrid() {
+            photoGrid.innerHTML = '';
+            
+            photos.forEach((photo, index) => {
+                const div = document.createElement('div');
+                div.className = 'relative group';
+                div.innerHTML = `
+                    <img src="${photo}" class="photo-preview w-full rounded-lg shadow-sm transition-transform duration-200 group-hover:scale-105">
+                    <button onclick="deletePhoto(${index})" class="absolute top-0 right-0 bg-red-500 text-white rounded-full w-7 h-7 flex items-center justify-center transform translate-x-1/3 -translate-y-1/3 opacity-0 group-hover:opacity-100 transition-opacity duration-200 focus:outline-none focus:ring-2 focus:ring-red-400">
+                        <i class="fas fa-times text-xs"></i>
+                    </button>
+                `;
+                photoGrid.appendChild(div);
+            });
         }
-    });
 
-    prevBtn.addEventListener('click', () => {
-        if (currentStep > 1) {
-            currentStep--;
-            updateStepUI();
+        /**
+         * Deletes a photo by index
+         * @param {number} index - Index of photo to delete
+         */
+        window.deletePhoto = (index) => {
+            if (confirm("Apakah Anda yakin ingin menghapus foto ini?")) {
+                photos.splice(index, 1);
+                updatePhotoGrid();
+                generateReport();
+                
+                if (photos.length === 0) {
+                    photoError.classList.remove('hidden');
+                }
+            }
+        };
+
+        /**
+         * Initializes the Leaflet map without setting a view.
+         * The view will be set once GPS location is available.
+         */
+        function initMap() {
+            try {
+                if (map === null && typeof L !== 'undefined') {
+                    // Initialize the map but don't set the view yet.
+                    map = L.map('map');
+                    
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                    }).addTo(map);
+                    
+                    L.control.scale({ position: 'bottomleft' }).addTo(map);
+                }
+            } catch (e) {
+                console.error("Map initialization error:", e);
+                showMessageBox("Error Peta", "Gagal memuat peta. Silakan refresh halaman.");
+            }
         }
-    });
 
-    // --- Application Initialization ---
-    document.addEventListener('DOMContentLoaded', () => {
-      startCamera();
-      updateDateTime();
-      getLocation();
-      updateStepUI();
-      
-      [namaPetugas, jabatan, judulKegiatan].forEach(el => {
-        el.addEventListener('input', generateReport);
-      });
-    });
-  </script>
+        /**
+         * Updates map with current location marker
+         * @param {number} lat - Latitude
+         * @param {number} lon - Longitude
+         * @param {string} popupText - Optional popup text
+         */
+        function updateMapLocation(lat, lon, popupText = 'Lokasi Anda') {
+            if (!map) return;
+            
+            const newLatLng = new L.LatLng(lat, lon);
+            
+            // Set the map view to the new location. This is crucial.
+            map.setView(newLatLng, 15); 
+
+            if (locationMarker) {
+                locationMarker.setLatLng(newLatLng);
+            } else {
+                locationMarker = L.marker(newLatLng, {
+                    draggable: true,
+                    autoPan: true
+                }).addTo(map);
+                
+                locationMarker.on('dragend', function(e) {
+                    const marker = e.target;
+                    const position = marker.getLatLng();
+                    currentPosition = { latitude: position.lat, longitude: position.lng };
+                    reverseGeocode(position.lat, position.lng);
+                });
+            }
+            
+            locationMarker.bindPopup(popupText).openPopup();
+        }
+
+        /**
+         * Performs reverse geocoding using Nominatim API
+         * @param {number} lat - Latitude
+         * @param {number} lon - Longitude
+         */
+        async function reverseGeocode(lat, lon) {
+            lokasiInput.value = `Lat: ${lat.toFixed(6)}, Long: ${lon.toFixed(6)} (Mencari alamat...)`;
+            const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1`;
+            
+            try {
+                const response = await fetch(url, {
+                    headers: { 'User-Agent': 'BPBD_Kobar_App/1.0' }
+                });
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                const address = data.display_name || `Lat: ${lat.toFixed(6)}, Long: ${lon.toFixed(6)}`;
+                lokasiInput.value = address;
+                // Update popup text after getting the address
+                if (locationMarker) {
+                    locationMarker.setPopupContent(address).openPopup();
+                }
+                lokasiError.classList.add('hidden');
+            } catch (error) {
+                console.error("Reverse geocoding error:", error);
+                lokasiInput.value = `Lat: ${lat.toFixed(6)}, Long: ${lon.toFixed(6)} (Gagal mendapatkan alamat)`;
+                lokasiError.classList.remove('hidden');
+            }
+        }
+
+        /**
+         * Gets current geolocation and updates map
+         */
+        async function getLocation() {
+            if (!navigator.geolocation) {
+                lokasiInput.value = "Browser tidak mendukung GPS";
+                showMessageBox("Browser Tidak Didukung", "Browser Anda tidak mendukung Geolocation API.");
+                // Set to default view if GPS is not supported
+                if (map) map.setView([-2.5, 118.0], 5);
+                return;
+            }
+            
+            lokasiInput.value = "Mencari lokasi...";
+            lokasiError.classList.remove('hidden');
+            
+            try {
+                const position = await new Promise((resolve, reject) => {
+                    navigator.geolocation.getCurrentPosition(resolve, reject, {
+                        enableHighAccuracy: true,
+                        timeout: 10000,
+                        maximumAge: 0
+                    });
+                });
+                
+                currentPosition = {
+                    latitude: position.coords.latitude,
+                    longitude: position.coords.longitude
+                };
+                
+                // This function now sets the view and updates the marker
+                updateMapLocation(currentPosition.latitude, currentPosition.longitude);
+                reverseGeocode(currentPosition.latitude, currentPosition.longitude);
+
+            } catch (error) {
+                let errorMessage = "Gagal mendapatkan lokasi.";
+                switch(error.code) {
+                    case error.PERMISSION_DENIED:
+                        errorMessage = "Izin lokasi ditolak. Silakan aktifkan izin lokasi di pengaturan browser Anda.";
+                        break;
+                    case error.POSITION_UNAVAILABLE:
+                        errorMessage = "Informasi lokasi tidak tersedia.";
+                        break;
+                    case error.TIMEOUT:
+                        errorMessage = "Waktu habis saat mencari lokasi. Pastikan GPS Anda aktif.";
+                        break;
+                }
+                
+                // Set to default view on error
+                if (map) map.setView([-2.5, 118.0], 5);
+
+                lokasiInput.value = errorMessage;
+                showMessageBox("Kesalahan Lokasi", errorMessage);
+            }
+        }
+
+        /**
+         * Updates date and time fields
+         */
+        function updateDateTime() {
+            const now = new Date();
+            
+            const optionsDate = { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            };
+            
+            tanggalInput.value = now.toLocaleDateString('id-ID', optionsDate);
+            
+            const jam = now.getHours().toString().padStart(2, '0');
+            const menit = now.getMinutes().toString().padStart(2, '0');
+            jamInput.value = `${jam}.${menit} WIB`;
+            
+            generateReport();
+        }
+
+        /**
+         * Generates report preview HTML
+         */
+        function generateReport() {
+            let reportHTML = `
+                <div class="a4-container">
+                    <div style="display: flex; align-items: center; border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 20px;">
+                        <img src="${logoImage.src}" style="width: 80px; height: 80px; margin-right: 20px;" crossorigin="anonymous" onerror="this.style.display='none'"/>
+                        <div style="text-align: center; flex-grow: 1;">
+                            <h1 style="font-size: 22px; font-weight: bold; margin: 0;">LAPORAN KEGIATAN</h1>
+                            <p style="font-size: 16px; margin: 0;">BADAN PENANGGULANGAN BENCANA DAERAH</p>
+                            <p style="font-size: 14px; margin: 0;">KABUPATEN KOTAWARINGIN BARAT</p>
+                        </div>
+                    </div>
+                    
+                    <h2 style="font-size: 16px; font-weight: bold; margin-bottom: 10px;">I. DETAIL KEGIATAN & PETA LOKASI</h2>
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <tbody>
+                            <tr>
+                                <td style="width: 60%; vertical-align: top; padding-right: 5mm;">
+                                    <table style="width: 100%; border-collapse: collapse; font-size: 14px; line-height: 1.6;">
+                                        <tbody>
+                                            <tr>
+                                                <td style="width: 120px; padding: 2px 0;">Nama Petugas</td>
+                                                <td style="width: 10px;">:</td>
+                                                <td style="font-weight: bold;">${namaPetugas.value || '-'}</td>
+                                            </tr>
+                                            ${jabatan.value ? `
+                                            <tr>
+                                                <td style="padding: 2px 0;">Jabatan</td>
+                                                <td>:</td>
+                                                <td style="font-weight: bold;">${jabatan.value}</td>
+                                            </tr>` : ''}
+                                            <tr>
+                                                <td style="padding: 2px 0; vertical-align: top;">Judul Kegiatan</td>
+                                                <td style="vertical-align: top;">:</td>
+                                                <td style="font-weight: bold; white-space: pre-wrap; vertical-align: top;">${judulKegiatan.value || '-'}</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 2px 0;">Waktu</td>
+                                                <td>:</td>
+                                                <td style="font-weight: bold;">${tanggalInput.value}, Pukul ${jamInput.value}</td>
+                                            </tr>
+                                             ${currentPosition ? `
+                                            <tr>
+                                                <td style="padding: 2px 0;">Koordinat</td>
+                                                <td>:</td>
+                                                <td style="font-weight: bold;">${currentPosition.latitude.toFixed(6)}, ${currentPosition.longitude.toFixed(6)}</td>
+                                            </tr>` : ''}
+                                            <tr>
+                                                <td style="padding: 2px 0; vertical-align: top;">Lokasi</td>
+                                                <td style="vertical-align: top;">:</td>
+                                                <td style="font-weight: bold; vertical-align: top;">${lokasiInput.value || '-'}</td>
+                                            </tr>
+                                           
+                                        </tbody>
+                                    </table>
+                                </td>
+                                <td style="width: 40%; vertical-align: top;">
+                                    <div id="report-map-placeholder" style="text-align: center; border: 1px solid #ddd; border-radius: 4px; padding: 4px; min-height: 150px;">
+                                        <p style="color: #888; text-align: center; padding: 40px 0;">[Peta akan dibuat...]</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <hr style="margin: 20px 0; border-top: 1px solid #ccc;">
+
+                    <h2 style="font-size: 16px; font-weight: bold; margin-bottom: 15px; text-align: center;">II. DOKUMENTASI FOTO</h2>
+                    <div style="display: grid; grid-template-columns: 1fr; gap: 10px; text-align: center; margin-bottom: 20px;">
+            `;
+
+            let photoWidth = '90%';
+            if (photos.length === 2) {
+                photoWidth = '75%';
+            } else if (photos.length === 3) {
+                photoWidth = '55%';
+            }
+
+            if (photos.length > 0) {
+                photos.forEach((photo, index) => {
+                    reportHTML += `
+                        <div>
+                            <img src="${photo}" style="width: ${photoWidth}; height: auto; border: 1px solid #ddd; padding: 4px; border-radius: 4px; margin: 0 auto; aspect-ratio: 16/9; object-fit: cover;" crossorigin="anonymous">
+                        </div>
+                    `;
+                });
+            } else {
+                reportHTML += `<p style="color: #888; text-align: center; padding: 40px 0;">[Foto belum diambil]</p>`;
+            }
+
+            reportHTML += `
+                    </div>
+                </div>
+            `;
+            
+            reportPreview.innerHTML = reportHTML;
+        }
+
+        /**
+         * Resets the entire application to its initial state by reloading the page.
+         */
+        function resetApp() {
+            location.reload();
+        }
+
+        /**
+         * Generates and saves report as PDF or PNG
+         * @param {string} format - 'pdf' or 'png'
+         */
+        async function generateAndSave(format) {
+            if (!validateInputs(true)) return;
+
+            const reportElement = reportPreview.querySelector('.a4-container');
+            if (!reportElement) return;
+
+            showMessageBox(
+                "Membuat Laporan",
+                "Harap tunggu, laporan Anda sedang dibuat...", {
+                    loading: true,
+                    buttonText: "Memproses"
+                }
+            );
+
+            const step2Element = document.getElementById('step-2');
+            const wasActive = step2Element.classList.contains('active');
+            if (!wasActive) {
+                step2Element.style.position = 'absolute';
+                step2Element.style.left = '-9999px';
+                step2Element.style.display = 'block';
+            }
+            
+            reportPreview.classList.remove('hidden');
+            reportPreview.style.position = 'absolute';
+            reportPreview.style.left = '-9999px';
+            reportPreview.style.top = '-9999px';
+
+            try {
+                 if (map) {
+                    map.invalidateSize();
+                }
+                await new Promise(resolve => setTimeout(resolve, 300));
+
+                const mapCanvas = await html2canvas(mapContainer, { useCORS: true });
+                const mapDataUrl = mapCanvas.toDataURL('image/png');
+                
+                const mapPlaceholder = reportElement.querySelector('#report-map-placeholder');
+                if(mapPlaceholder) {
+                    mapPlaceholder.innerHTML = `<img src="${mapDataUrl}" style="max-width: 100%; height: auto; border-radius: 4px;">`;
+                }
+
+                await new Promise(resolve => {
+                    const mapImg = mapPlaceholder.querySelector('img');
+                    if (mapImg && mapImg.complete) {
+                        resolve();
+                    } else if (mapImg) {
+                        mapImg.onload = resolve;
+                        mapImg.onerror = resolve;
+                    } else {
+                        resolve();
+                    }
+                });
+                
+                const finalCanvas = await html2canvas(reportElement, {
+                    scale: 2,
+                    useCORS: true,
+                    logging: false,
+                    windowWidth: reportElement.scrollWidth,
+                    windowHeight: reportElement.scrollHeight,
+                    scrollY: -window.scrollY
+                });
+
+                const sanitize = (str) => str.replace(/[^a-zA-Z0-9_.-]/g, '_').substring(0, 30);
+                const petugas = sanitize(namaPetugas.value.trim());
+                const kegiatan = sanitize(judulKegiatan.value.trim());
+                const tgl = new Date();
+                const dateString = `${String(tgl.getDate()).padStart(2, '0')}-${String(tgl.getMonth() + 1).padStart(2, '0')}-${tgl.getFullYear()}`;
+                const fileName = `Laporan_${petugas}_${kegiatan}_${dateString}`;
+
+                if (format === 'pdf') {
+                    const imgData = finalCanvas.toDataURL('image/jpeg', 0.9);
+                    const pdf = new jsPDF({
+                        orientation: 'portrait',
+                        unit: 'mm',
+                        format: 'a4'
+                    });
+                    const pdfWidth = pdf.internal.pageSize.getWidth();
+                    const imgHeightInPDF = pdfWidth / (finalCanvas.width / finalCanvas.height);
+                    pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, imgHeightInPDF);
+                    pdf.save(`${fileName}.pdf`);
+                } else {
+                    const link = document.createElement('a');
+                    link.download = `${fileName}.png`;
+                    link.href = finalCanvas.toDataURL('image/png');
+                    link.click();
+                }
+
+                showMessageBox("Berhasil!", "Laporan berhasil dibuat. Aplikasi akan direset.", {}, resetApp);
+
+            } catch (error) {
+                console.error(`Error generating ${format}:`, error);
+                showMessageBox("Kesalahan", `Gagal membuat laporan: ${error.message}`);
+            } finally {
+                 if (!wasActive) {
+                    step2Element.style.position = '';
+                    step2Element.style.left = '';
+                    step2Element.style.display = 'none';
+                }
+                generateReport(); // Restore original preview structure
+                reportPreview.classList.add('hidden');
+                reportPreview.style.position = '';
+                reportPreview.style.left = '';
+                reportPreview.style.top = '';
+            }
+        }
+
+        // Event listeners for save buttons
+        savePdfBtn.addEventListener('click', () => generateAndSave('pdf'));
+        downloadBtn.addEventListener('click', () => generateAndSave('png'));
+
+        /**
+         * Validates form inputs
+         * @param {boolean} finalCheck - Whether to validate all steps
+         * @returns {boolean} True if validation passes
+         */
+        function validateInputs(finalCheck = false) {
+            let isValid = true;
+            
+            document.querySelectorAll('.input-error').forEach(el => {
+                el.classList.remove('input-error');
+            });
+            [namaPetugasError, judulKegiatanError, lokasiError, photoError].forEach(el => {
+                el.classList.add('hidden');
+            });
+            
+            if (currentStep === 1 || finalCheck) {
+                if (!namaPetugas.value.trim()) {
+                    namaPetugas.classList.add('input-error');
+                    namaPetugasError.classList.remove('hidden');
+                    isValid = false;
+                    if (currentStep === 1) namaPetugas.focus();
+                }
+                 if (!judulKegiatan.value.trim()) {
+                    judulKegiatan.classList.add('input-error');
+                    judulKegiatanError.classList.remove('hidden');
+                    isValid = false;
+                    if (currentStep === 1) judulKegiatan.focus();
+                }
+            }
+            
+            if (currentStep === 2 || finalCheck) {
+               
+                if (!lokasiInput.value.trim() || lokasiInput.value.includes("Mencari")) {
+                    lokasiInput.classList.add('input-error');
+                    lokasiError.classList.remove('hidden');
+                    isValid = false;
+                }
+            }
+            
+            if (finalCheck && photos.length === 0) {
+                photoError.classList.remove('hidden');
+                isValid = false;
+                if (currentStep === 3) {
+                    document.getElementById('step-3').scrollIntoView({ behavior: 'smooth' });
+                }
+            }
+            
+            if (!isValid && !finalCheck) {
+                showMessageBox("Data Tidak Lengkap", "Harap lengkapi semua field yang diperlukan");
+            }
+            
+            return isValid;
+        }
+
+        /**
+         * Updates UI for current step
+         */
+        function updateStepUI() {
+            document.querySelectorAll('.form-step').forEach(step => {
+                step.classList.remove('active');
+            });
+            document.getElementById(`step-${currentStep}`).classList.add('active');
+            
+            document.querySelectorAll('[id^="step-indicator-"]').forEach((ind, index) => {
+                ind.classList.remove('font-bold', 'text-blue-600');
+                if ((index + 1) === currentStep) {
+                     ind.classList.add('font-bold', 'text-blue-600');
+                }
+            });
+            
+            // Handle visibility of step navigation and action buttons
+            if (currentStep === 1) {
+                stepNavigation.classList.remove('justify-between');
+                stepNavigation.classList.add('justify-end');
+                prevBtn.classList.add('hidden');
+                nextBtn.classList.remove('hidden');
+                actionButtons.classList.add('hidden');
+            } else if (currentStep === 2) {
+                stepNavigation.classList.remove('justify-end');
+                stepNavigation.classList.add('justify-between');
+                prevBtn.classList.remove('hidden');
+                nextBtn.classList.remove('hidden');
+                actionButtons.classList.add('hidden');
+            } else { // Step 3
+                stepNavigation.classList.remove('justify-end');
+                stepNavigation.classList.add('justify-between');
+                prevBtn.classList.remove('hidden');
+                nextBtn.classList.add('hidden');
+                actionButtons.classList.remove('hidden');
+            }
+            
+            if (currentStep === 2 && map) {
+                setTimeout(() => {
+                    map.invalidateSize();
+                    if (currentPosition) {
+                        updateMapLocation(currentPosition.latitude, currentPosition.longitude);
+                    }
+                }, 300);
+            }
+            
+            if (currentStep === totalSteps) {
+                generateReport();
+            }
+        }
+
+        // Navigation button handlers
+        nextBtn.addEventListener('click', () => {
+            if (!validateInputs()) return;
+            
+            if (currentStep < totalSteps) {
+                currentStep++;
+                updateStepUI();
+            }
+        });
+
+        prevBtn.addEventListener('click', () => {
+            if (currentStep > 1) {
+                currentStep--;
+                updateStepUI();
+            }
+        });
+
+        // Refresh location button
+        refreshLocationBtn.addEventListener('click', () => {
+            getLocation();
+        });
+
+        // Initialize application
+        window.addEventListener('load', () => {
+            startCamera();
+            updateDateTime();
+            initMap();
+            getLocation();
+            updateStepUI();
+            
+            setInterval(updateDateTime, 60000);
+            
+            [namaPetugas, jabatan, judulKegiatan].forEach(el => {
+                el.addEventListener('input', generateReport);
+            });
+            
+            window.addEventListener('beforeunload', () => {
+                if (stream) {
+                    stream.getTracks().forEach(track => track.stop());
+                }
+            });
+        });
+    </script>
 </body>
 </html>
