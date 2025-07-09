@@ -38,7 +38,7 @@
         .a4-container {
             width: 210mm;
             min-height: 330mm;
-            padding: 2mm 15mm 15mm;
+            padding: 5mm 10mm 10mm;
             background: white;
             box-shadow: 0 4px 20px rgba(0,0,0,0.1);
             margin: 10px auto;
@@ -121,7 +121,7 @@
     <div class="container mx-auto p-4 max-w-md flex flex-col">
         <!-- Header Section -->
         <header class="text-center mb-6 flex-shrink-0">
-            <img src="logo.png" alt="Logo BPBD" class="h-20 w-20 mb-4 rounded-full mx-auto" onerror="this.src='https://placehold.co/80x80/000000/FFFFFF?text=LOGO';">
+            <img src="https://placehold.co/80x80/000000/FFFFFF?text=LOGO" alt="Logo BPBD" class="h-20 w-20 mb-4 rounded-full mx-auto" onerror="this.src='https://placehold.co/80x80/000000/FFFFFF?text=LOGO';">
             <div>
                 <h1 class="text-3xl font-extrabold text-blue-800 mb-2">LAPORAN KEGIATAN</h1>
                 <p class="text-lg text-gray-600">BPBD Kabupaten Kotawaringin Barat</p>
@@ -136,9 +136,8 @@
         </div>
 
         <div class="relative flex-grow overflow-y-auto">
-
-            <!-- Floating Navigation Buttons -->
-            <div id="step-navigation" class="absolute top-1/2 -translate-y-1/2 w-full flex justify-between px-[-24px] z-20 pointer-events-none">
+             <!-- Floating Navigation Buttons -->
+            <div id="floating-nav" class="absolute top-1/2 -translate-y-1/2 w-full flex justify-between px-2 z-20 pointer-events-none">
                 <button id="prevBtn" class="bg-gray-800/40 text-white w-10 h-10 rounded-full shadow-lg flex items-center justify-center transform hover:scale-110 transition-transform duration-300 ease-in-out pointer-events-auto">
                     <i class="fas fa-chevron-left"></i>
                 </button>
@@ -211,15 +210,17 @@
             </div>
         </div>
 
-<!-- Final Action Buttons -->
-        <div id="action-buttons-container" class="mt-auto pt-4 mb-6 flex-shrink-0">
-            <div id="action-buttons" class="grid grid-cols-2 gap-4 hidden">
-                <button id="savePdfBtn" class="bg-gradient-to-r from-blue-600 to-blue-800 text-white py-3 rounded-lg shadow-lg hover:shadow-xl font-semibold text-lg transform hover:-translate-y-1 transition-all duration-300 ease-in-out">
-                    <i class="fas fa-file-pdf mr-2"></i> Simpan PDF
+        <!-- Final Action Buttons -->
+        <div id="action-buttons-container" class="mt-auto pt-4 flex-shrink-0">
+            <div id="action-buttons" class="hidden grid grid-cols-3 gap-2">
+                <button id="savePdfBtn" class="bg-gradient-to-r from-blue-600 to-blue-800 text-white py-3 rounded-lg shadow-lg hover:shadow-xl font-semibold text-base transform hover:-translate-y-1 transition-all duration-300 ease-in-out">
+                    <i class="fas fa-file-pdf mr-2"></i>PDF
                 </button>
-                <button id="downloadBtn" class="bg-gradient-to-r from-green-500 to-green-700 text-white py-3 rounded-lg shadow-lg hover:shadow-xl font-semibold text-lg transform hover:-translate-y-1 transition-all duration-300 ease-in-out">
-                    <i class="fas fa-download mr-2"></i> Simpan PNG
-
+                <button id="downloadBtn" class="bg-gradient-to-r from-green-500 to-green-700 text-white py-3 rounded-lg shadow-lg hover:shadow-xl font-semibold text-base transform hover:-translate-y-1 transition-all duration-300 ease-in-out">
+                    <i class="fas fa-download mr-2"></i>PNG
+                </button>
+                 <button id="shareWaBtn" class="bg-gradient-to-r from-teal-500 to-cyan-600 text-white py-3 rounded-lg shadow-lg hover:shadow-xl font-semibold text-base transform hover:-translate-y-1 transition-all duration-300 ease-in-out">
+                    <i class="fab fa-whatsapp mr-2"></i>Bagikan
                 </button>
             </div>
         </div>
@@ -259,14 +260,15 @@
         const lokasiInput = document.getElementById('lokasi');
         const savePdfBtn = document.getElementById('savePdfBtn');
         const downloadBtn = document.getElementById('downloadBtn');
+        const shareWaBtn = document.getElementById('shareWaBtn');
         const reportPreview = document.getElementById('reportPreview');
         const prevBtn = document.getElementById('prevBtn');
         const nextBtn = document.getElementById('nextBtn');
         const actionButtons = document.getElementById('action-buttons');
+        const actionButtonsContainer = document.getElementById('action-buttons-container');
         const mapContainer = document.getElementById('map');
         const refreshLocationBtn = document.getElementById('refreshLocationBtn');
-        const stepNavigation = document.getElementById('step-navigation');
-        const navigationContainer = document.getElementById('navigation-container');
+        const floatingNav = document.getElementById('floating-nav');
 
         // Error message elements
         const namaPetugasError = document.getElementById('namaPetugasError');
@@ -289,7 +291,7 @@
         let currentStep = 1;
         const totalSteps = 3;
         const logoImage = new Image();
-        logoImage.src = 'logo.png';
+        logoImage.src = 'https://placehold.co/80x80/000000/FFFFFF?text=LOGO';
         logoImage.crossOrigin = 'Anonymous';
 
         let map = null;
@@ -459,14 +461,14 @@
             ctx.fillRect(0, canvas.height - footerHeight, canvas.width, footerHeight);
             
             ctx.fillStyle = 'white';
-            ctx.font = '24px Arial';
+            ctx.font = '18px Arial';
             
             // Left side: Kegiatan (with wrapping)
             ctx.textAlign = 'left';
             const kegiatanText = `Kegiatan: ${judulKegiatan.value || 'Tidak ada judul'}`;
             const leftX = padding;
             const leftY = canvas.height - footerHeight + lineHeight + 5;
-            const leftMaxWidth = canvas.width / 1.4;
+            const leftMaxWidth = canvas.width / 2;
             wrapText(ctx, kegiatanText, leftX, leftY, leftMaxWidth, lineHeight);
 
             // Right side: Time and Coordinates
@@ -696,7 +698,7 @@
             let reportHTML = `
                 <div class="a4-container">
                     <div style="display: flex; align-items: center; border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 20px;">
-                        <img src="${logoImage.src}" style="width: 70px; height: 70px; margin-right: 30px;" crossorigin="anonymous" onerror="this.style.display='none'"/>
+                        <img src="${logoImage.src}" style="width: 80px; height: 80px; margin-right: 20px;" crossorigin="anonymous" onerror="this.style.display='none'"/>
                         <div style="text-align: center; flex-grow: 1;">
                             <h1 style="font-size: 22px; font-weight: bold; margin: 0;">LAPORAN KEGIATAN</h1>
                             <p style="font-size: 16px; margin: 0;">BADAN PENANGGULANGAN BENCANA DAERAH</p>
@@ -797,22 +799,11 @@
         }
 
         /**
-         * Generates and saves report as PDF or PNG
-         * @param {string} format - 'pdf' or 'png'
+         * Generates the report canvas.
          */
-        async function generateAndSave(format) {
-            if (!validateInputs(true)) return;
-
+        async function generateReportCanvas() {
             const reportElement = reportPreview.querySelector('.a4-container');
-            if (!reportElement) return;
-
-            showMessageBox(
-                "Membuat Laporan",
-                "Harap tunggu, laporan Anda sedang dibuat...", {
-                    loading: true,
-                    buttonText: "Memproses"
-                }
-            );
+            if (!reportElement) throw new Error("Report element not found");
 
             const step2Element = document.getElementById('step-2');
             const wasActive = step2Element.classList.contains('active');
@@ -827,41 +818,64 @@
             reportPreview.style.left = '-9999px';
             reportPreview.style.top = '-9999px';
 
+            if (map) {
+                map.invalidateSize();
+            }
+            await new Promise(resolve => setTimeout(resolve, 300));
+
+            const mapCanvas = await html2canvas(mapContainer, { useCORS: true });
+            const mapDataUrl = mapCanvas.toDataURL('image/png');
+            
+            const mapPlaceholder = reportElement.querySelector('#report-map-placeholder');
+            if(mapPlaceholder) {
+                mapPlaceholder.innerHTML = `<img src="${mapDataUrl}" style="max-width: 100%; height: auto; border-radius: 4px;">`;
+            }
+
+            await new Promise(resolve => {
+                const mapImg = mapPlaceholder.querySelector('img');
+                if (mapImg && mapImg.complete) resolve();
+                else if (mapImg) {
+                    mapImg.onload = resolve;
+                    mapImg.onerror = resolve;
+                } else {
+                    resolve();
+                }
+            });
+            
+            const finalCanvas = await html2canvas(reportElement, {
+                scale: 2,
+                useCORS: true,
+                logging: false,
+                windowWidth: reportElement.scrollWidth,
+                windowHeight: reportElement.scrollHeight,
+                scrollY: -window.scrollY
+            });
+
+            if (!wasActive) {
+                step2Element.style.position = '';
+                step2Element.style.left = '';
+                step2Element.style.display = 'none';
+            }
+            generateReport();
+            reportPreview.classList.add('hidden');
+            reportPreview.style.position = '';
+            reportPreview.style.left = '';
+            reportPreview.style.top = '';
+
+            return finalCanvas;
+        }
+
+        /**
+         * Generates and saves report as PDF or PNG
+         * @param {string} format - 'pdf' or 'png'
+         */
+        async function generateAndSave(format) {
+            if (!validateInputs(true)) return;
+
+            showMessageBox("Membuat Laporan", "Harap tunggu, laporan Anda sedang dibuat...", { loading: true });
+
             try {
-                 if (map) {
-                    map.invalidateSize();
-                }
-                await new Promise(resolve => setTimeout(resolve, 300));
-
-                const mapCanvas = await html2canvas(mapContainer, { useCORS: true });
-                const mapDataUrl = mapCanvas.toDataURL('image/png');
-                
-                const mapPlaceholder = reportElement.querySelector('#report-map-placeholder');
-                if(mapPlaceholder) {
-                    mapPlaceholder.innerHTML = `<img src="${mapDataUrl}" style="max-width: 100%; height: auto; border-radius: 4px;">`;
-                }
-
-                await new Promise(resolve => {
-                    const mapImg = mapPlaceholder.querySelector('img');
-                    if (mapImg && mapImg.complete) {
-                        resolve();
-                    } else if (mapImg) {
-                        mapImg.onload = resolve;
-                        mapImg.onerror = resolve;
-                    } else {
-                        resolve();
-                    }
-                });
-                
-                const finalCanvas = await html2canvas(reportElement, {
-                    scale: 2,
-                    useCORS: true,
-                    logging: false,
-                    windowWidth: reportElement.scrollWidth,
-                    windowHeight: reportElement.scrollHeight,
-                    scrollY: -window.scrollY
-                });
-
+                const finalCanvas = await generateReportCanvas();
                 const sanitize = (str) => str.replace(/[^a-zA-Z0-9_.-]/g, '_').substring(0, 30);
                 const petugas = sanitize(namaPetugas.value.trim());
                 const kegiatan = sanitize(judulKegiatan.value.trim());
@@ -871,11 +885,7 @@
 
                 if (format === 'pdf') {
                     const imgData = finalCanvas.toDataURL('image/jpeg', 0.9);
-                    const pdf = new jsPDF({
-                        orientation: 'portrait',
-                        unit: 'mm',
-                        format: [210, 330] // F4 Size
-                    });
+                    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: [210, 330] });
                     const pdfWidth = pdf.internal.pageSize.getWidth();
                     const imgHeightInPDF = pdfWidth / (finalCanvas.width / finalCanvas.height);
                     pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, imgHeightInPDF);
@@ -888,27 +898,58 @@
                 }
 
                 showMessageBox("Berhasil!", "Laporan berhasil dibuat. Aplikasi akan direset.", {}, resetApp);
-
             } catch (error) {
                 console.error(`Error generating ${format}:`, error);
                 showMessageBox("Kesalahan", `Gagal membuat laporan: ${error.message}`);
-            } finally {
-                 if (!wasActive) {
-                    step2Element.style.position = '';
-                    step2Element.style.left = '';
-                    step2Element.style.display = 'none';
+            }
+        }
+
+        async function shareViaWhatsApp() {
+            if (!validateInputs(true)) return;
+            
+            if (!navigator.share) {
+                showMessageBox("Fitur Tidak Didukung", "Browser Anda tidak mendukung fitur berbagi langsung. Silakan unduh laporan sebagai gambar (PNG) dan bagikan secara manual.");
+                return;
+            }
+
+            showMessageBox("Mempersiapkan Laporan...", "Harap tunggu, laporan sedang dibuat untuk dibagikan.", { loading: true });
+
+            try {
+                const finalCanvas = await generateReportCanvas();
+                const blob = await new Promise(resolve => finalCanvas.toBlob(resolve, 'image/png'));
+                
+                const sanitize = (str) => str.replace(/[^a-zA-Z0-9_.-]/g, '_').substring(0, 30);
+                const petugas = sanitize(namaPetugas.value.trim());
+                const kegiatan = sanitize(judulKegiatan.value.trim());
+                const fileName = `Laporan_${petugas}_${kegiatan}.png`;
+
+                const file = new File([blob], fileName, { type: 'image/png' });
+                const shareData = {
+                    files: [file],
+                    title: `Laporan Kegiatan: ${judulKegiatan.value}`,
+                    text: `Berikut adalah laporan kegiatan "${judulKegiatan.value}" oleh ${namaPetugas.value}.`,
+                };
+
+                if (navigator.canShare && navigator.canShare(shareData)) {
+                    await navigator.share(shareData);
+                    showMessageBox("Berhasil Dibagikan", "Laporan telah dibagikan. Aplikasi akan direset.", {}, resetApp);
+                } else {
+                     showMessageBox("Gagal Membagikan", "Browser Anda tidak dapat membagikan file ini. Silakan unduh laporan sebagai gambar (PNG) dan bagikan secara manual.");
                 }
-                generateReport(); // Restore original preview structure
-                reportPreview.classList.add('hidden');
-                reportPreview.style.position = '';
-                reportPreview.style.left = '';
-                reportPreview.style.top = '';
+            } catch (error) {
+                console.error('Error sharing:', error);
+                if (error.name !== 'AbortError') {
+                    showMessageBox("Gagal Membagikan", `Terjadi kesalahan: ${error.message}`);
+                } else {
+                    messageBoxOverlay.classList.add('hidden');
+                }
             }
         }
 
         // Event listeners for save buttons
         savePdfBtn.addEventListener('click', () => generateAndSave('pdf'));
         downloadBtn.addEventListener('click', () => generateAndSave('png'));
+        shareWaBtn.addEventListener('click', shareViaWhatsApp);
 
         /**
          * Validates form inputs
@@ -980,26 +1021,19 @@
                 }
             });
             
-            // Handle visibility of step navigation and action buttons
-            if (currentStep === 1) {
-                stepNavigation.classList.remove('justify-between');
-                stepNavigation.classList.add('justify-end');
-                prevBtn.classList.add('hidden');
-                nextBtn.classList.remove('hidden');
-                actionButtons.classList.add('hidden');
-            } else if (currentStep === 2) {
-                stepNavigation.classList.remove('justify-end');
-                stepNavigation.classList.add('justify-between');
-                prevBtn.classList.remove('hidden');
-                nextBtn.classList.remove('hidden');
-                actionButtons.classList.add('hidden');
-            } else { // Step 3
-                stepNavigation.classList.remove('justify-end');
-                stepNavigation.classList.add('justify-between');
-                prevBtn.classList.remove('hidden');
-                nextBtn.classList.add('hidden');
+            // Handle visibility of floating nav vs final action buttons
+            if (currentStep === totalSteps) {
+                floatingNav.classList.add('hidden');
                 actionButtons.classList.remove('hidden');
+                actionButtons.classList.add('grid');
+            } else {
+                floatingNav.classList.remove('hidden');
+                actionButtons.classList.add('hidden');
+                actionButtons.classList.remove('grid');
             }
+
+            prevBtn.style.visibility = currentStep === 1 ? 'hidden' : 'visible';
+            nextBtn.style.visibility = currentStep === totalSteps ? 'hidden' : 'visible';
             
             if (currentStep === 2 && map) {
                 setTimeout(() => {
