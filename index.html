@@ -12,6 +12,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+    <!-- Lottie Player -->
+    <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
     <style>
         html, body {
             height: 100%;
@@ -133,18 +135,52 @@
         #timer-overlay.visible {
             opacity: 1;
         }
-
+  
+        #splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: #1a202c;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.5s ease-out;
+        }
+        #enter-app-btn {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease-in;
+        }
+        #enter-app-btn.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen font-sans">
-    <div class="container mx-auto p-4 max-w-md flex flex-col">
+<!--     <div class="container mx-auto p-4 max-w-md flex flex-col"> -->
+
+    <div id="splash-screen">
+        <lottie-player src="https://assets1.lottiefiles.com/packages/lf20_g3pnlc2d.json" background="transparent" speed="1" style="width: 300px; height: 300px;" loop autoplay></lottie-player>
+        <button id="enter-app-btn" class="mt-8 bg-blue-600 text-white font-bold py-3 px-8 rounded-full shadow-lg transform hover:scale-105 transition-transform">
+            Masuk & Layar Penuh
+        </button>
+    </div>
+
+    <div id="main-app-container" class="container mx-auto p-4 max-w-md flex-col min-h-screen hidden">
+
         <!-- Header Section -->
         <header class="relative text-center mb-6 flex-shrink-0">
              <button id="fullscreenBtn" class="absolute top-0 right-0 bg-white/50 backdrop-blur-sm text-gray-700 w-10 h-10 rounded-full shadow-md flex items-center justify-center transform hover:scale-110 transition-transform">
-                <i class="fas fa-expand"></i>
+                <i class="fas fa-compress"></i>
             </button>                
             <img src="logo.png" alt="Logo BPBD" class="h-20 w-20 mb-4 rounded-full mx-auto" onerror="this.src='logo.png';">
             <div>
@@ -307,7 +343,10 @@
         const timerBtn = document.getElementById('timerBtn');
         const timerOverlay = document.getElementById('timer-overlay');
         const fullscreenBtn = document.getElementById('fullscreenBtn');
-
+        const splashScreen = document.getElementById('splash-screen');
+        const enterAppBtn = document.getElementById('enter-app-btn');
+        const mainAppContainer = document.getElementById('main-app-container');
+        
         // Error message elements
         const namaPetugasError = document.getElementById('namaPetugasError');
         const judulKegiatanError = document.getElementById('judulKegiatanError');
@@ -1151,12 +1190,13 @@
 
          function toggleFullScreen() {
             if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen();
-                fullscreenBtn.innerHTML = '<i class="fas fa-compress"></i>';
+            document.documentElement.requestFullscreen().catch(err => {
+                console.error(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
+            });
             } else {
               if (document.exitFullscreen) {
                 document.exitFullscreen();
-                fullscreenBtn.innerHTML = '<i class="fas fa-expand"></i>';
+                // fullscreenBtn.innerHTML = '<i class="fas fa-expand"></i>';
               }
             }
         }
@@ -1166,16 +1206,38 @@
         document.addEventListener('fullscreenchange', () => {
             if (!document.fullscreenElement) {
                 fullscreenBtn.innerHTML = '<i class="fas fa-expand"></i>';
+                } else {
+                fullscreenBtn.innerHTML = '<i class="fas fa-compress"></i>';
             }
         });
 
-        // Initialize application
-        window.addEventListener('load', () => {
+        
+        function initializeApp() {
+            splashScreen.style.opacity = '0';
+            setTimeout(() => {
+                splashScreen.style.display = 'none';
+            }, 500);
+
+            mainAppContainer.classList.remove('hidden');
+            mainAppContainer.classList.add('flex');
             startCamera();
             updateDateTime();
             initMap();
             getLocation();
             updateStepUI();
+            }
+
+
+        // Initialize application
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                enterAppBtn.classList.add('visible');
+            }, 2500);
+
+            enterAppBtn.addEventListener('click', () => {
+                toggleFullScreen();
+                initializeApp();
+            });
             
             setInterval(updateDateTime, 60000);
             
