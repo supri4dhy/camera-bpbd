@@ -461,14 +461,14 @@
             ctx.fillRect(0, canvas.height - footerHeight, canvas.width, footerHeight);
             
             ctx.fillStyle = 'white';
-            ctx.font = '18px Arial';
+            ctx.font = '26px Arial';
             
             // Left side: Kegiatan (with wrapping)
             ctx.textAlign = 'left';
             const kegiatanText = `Kegiatan: ${judulKegiatan.value || 'Tidak ada judul'}`;
             const leftX = padding;
             const leftY = canvas.height - footerHeight + lineHeight + 5;
-            const leftMaxWidth = canvas.width / 2;
+            const leftMaxWidth = canvas.width / 1.4;
             wrapText(ctx, kegiatanText, leftX, leftY, leftMaxWidth, lineHeight);
 
             // Right side: Time and Coordinates
